@@ -1,7 +1,12 @@
 package com.projeto.Ecommerce.controller;
 
-import com.projeto.Ecommerce.model.Cliente;
+import com.projeto.Ecommerce.model.Cartoes;
+import com.projeto.Ecommerce.model.Clientes;
+import com.projeto.Ecommerce.model.Enderecos;
+import com.projeto.Ecommerce.repository.CartaoRepository;
 import com.projeto.Ecommerce.repository.ClienteRepository;
+import com.projeto.Ecommerce.repository.EnderecoRepository;
+import com.projeto.Ecommerce.service.ClientesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,44 +17,98 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
+@CrossOrigin
 @RestController
 @RequestMapping("/site")
 public class SiteController {
 
     @Autowired
     ClienteRepository clienterepository;
+    @Autowired
+    EnderecoRepository enderecorepository;
+    @Autowired
+    CartaoRepository cartaorepository;
+    @Autowired
+    private ClientesService clienteService;
 
-    @PostMapping("/clientes/post")
-    public ResponseEntity<Cliente> createCliente(@RequestBody Cliente cliente) {
+    @PostMapping("/clientes/post/cliente")
+    public ResponseEntity<Clientes> createCliente(@RequestBody Clientes clientes) {
+        System.out.println("Recebido: " + clientes);
+        if (clientes.getCliNome() == null || clientes.getCliNome().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(null);
+        }
         try {
-            Cliente savedCliente = clienterepository.save(cliente);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedCliente);
+            Clientes savedClientes = clienterepository.save(clientes);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedClientes);
         } catch (Exception e) {
-            e.printStackTrace(); // Log the exception if necessary
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @GetMapping("/clientes/get")
-    public ResponseEntity<List<Cliente>> getAllClientes(@RequestParam(required = false) String id) {
+    //@PathVariable Integer id
+    @PostMapping("/clientes/post/endereco")
+    public ResponseEntity<Enderecos> createEndereco(@RequestParam("id") String id, @RequestBody Enderecos enderecos) {
+        System.out.println("Recebido: " + enderecos);
+        System.out.println("Recebido: " + id);
+        if (enderecos.getEndBairro() == null || enderecos.getEndBairro().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(null);
+        }
         try {
-            List<Cliente> clientes = new ArrayList<Cliente>();
 
-            if (id == null)
-                clienterepository.findAll().forEach(clientes::add);
-            if (clientes.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            Clientes cliente= clienterepository.findById(Integer.valueOf(id)).orElse(null);
+            if (cliente == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
-
-            return new ResponseEntity<>(clientes, HttpStatus.OK);
+            enderecos.setCliente(cliente);
+            Enderecos savedEndereco = enderecorepository.save(enderecos);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedEndereco);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @PostMapping("/clientes/post/cartao")
+    public ResponseEntity<Cartoes> createCartao(@RequestParam("id") Integer id, @RequestBody Cartoes cartao) {
+        System.out.println("Recebido: " + cartao);
+        if (cartao.getCarNome() == null || cartao.getCarNome().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        try {
+
+            Clientes cliente = clienterepository.findById(id).orElse(null);
+            if (cliente == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            cartao.setCliente(cliente);
+            Cartoes savedcartao = cartaorepository.save(cartao);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedcartao);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
+    @GetMapping("/clientes/get")
+    public List<Clientes> buscarClientes(
+            @RequestParam(required = false) String CLI_NOME,
+            @RequestParam(required = false) String CLI_GENERO,
+            @RequestParam(required = false) String CLI_CPF,
+            @RequestParam(required = false) String CLI_EMAIL,
+            @RequestParam(required = false) String CLI_TELEFONE,
+            @RequestParam(required = false) Integer CLI_IDADE) {
+
+        // Se todos os parâmetros forem nulos, retorna todos os clientes
+        if (CLI_NOME == null && CLI_GENERO == null && CLI_CPF == null &&
+                CLI_EMAIL == null && CLI_TELEFONE == null && CLI_IDADE == null) {
+            return clienteService.buscarTodosClientes();
+        }
+        return clienteService.buscarClientes(CLI_NOME, CLI_GENERO, CLI_CPF, CLI_EMAIL, CLI_TELEFONE, CLI_IDADE);
+    }
+
     @GetMapping("/clientes/get/{id}")
-    public ResponseEntity<Cliente> getClientelById(@PathVariable("id") Long id) {
-        Optional<Cliente> clienteData = clienterepository.findById(id);
+    public ResponseEntity<Clientes> getClientelById(@PathVariable("id") Integer id) {
+        Optional<Clientes> clienteData = clienterepository.findById(id);
 
         if (clienteData.isPresent()) {
             return new ResponseEntity<>(clienteData.get(), HttpStatus.OK);
@@ -58,21 +117,21 @@ public class SiteController {
         }
     }
     @PutMapping("/clientes/put/{id}")
-    public ResponseEntity<Cliente> updateCliente(@PathVariable("id")  Long id, @RequestBody Cliente cliente) {
-        Optional<Cliente> clienteData = clienterepository.findById(id);
+    public ResponseEntity<Clientes> updateCliente(@PathVariable("id")  Integer id, @RequestBody Clientes clientes) {
+        Optional<Clientes> clienteData = clienterepository.findById(id);
 
         if (clienteData.isPresent()) {
-            Cliente _cliente = clienteData.get();
-            _cliente.setName(cliente.getName());
-            return new ResponseEntity<>(clienterepository.save(_cliente), HttpStatus.OK);
+            Clientes _clientes = clienteData.get();
+            _clientes.setCliNome(clientes.getCliNome());
+            return new ResponseEntity<>(clienterepository.save(_clientes), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
     @DeleteMapping("/clientes/delete/{id}")
-    public ResponseEntity<HttpStatus> deleteCliente(@PathVariable("id") Long id) {
+    public ResponseEntity<HttpStatus> deleteCliente(@PathVariable("id") Integer id) {
         try {
-            Optional<Cliente> clienteData = clienterepository.findById(id);
+            Optional<Clientes> clienteData = clienterepository.findById(id);
             if (clienteData.isPresent()) {
                 clienterepository.deleteById(id);
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
