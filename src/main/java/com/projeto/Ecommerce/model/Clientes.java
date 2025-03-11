@@ -1,10 +1,12 @@
 package com.projeto.Ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -53,4 +55,12 @@ public class Clientes {
     @JsonProperty("CLI_STATUS")
     @Column(name = "CLI_STATUS")
     private String cliStatus;
+
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
+    @JsonManagedReference  // Controla a serialização da lista de endereços
+    private List<Enderecos> enderecos;
+
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
+    @JsonManagedReference  // Controla a serialização da lista de cartões
+    private List<Cartoes> cartoes;
 }

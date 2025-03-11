@@ -1,5 +1,6 @@
 package com.projeto.Ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,5 +45,6 @@ public class Cartoes {
 
     @ManyToOne
     @JoinColumn(name = "CLI_ID")
+    @JsonBackReference  // Não serializa a referência de volta para o cliente
     private Clientes cliente;
 }

@@ -15,7 +15,8 @@ public interface ClienteRepository extends JpaRepository<Clientes, Integer> {
             "(:cpf IS NULL OR c.cliCpf = :cpf) AND " +
             "(:email IS NULL OR c.cliEmail LIKE %:email%) AND " +
             "(:telefone IS NULL OR c.cliTelefone = :telefone) AND " +
-            "(:idade IS NULL OR c.cliIdade = :idade)")
+            "(:idade IS NULL OR c.cliIdade = :idade) AND " +
+            "c.cliStatus = 'ativo'")
     List<Clientes> findByFilters(
             @Param("nome") String nome,
             @Param("genero") String genero,

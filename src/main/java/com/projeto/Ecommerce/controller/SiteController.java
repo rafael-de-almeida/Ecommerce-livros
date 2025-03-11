@@ -24,11 +24,11 @@ import java.util.Optional;
 public class SiteController {
 
     @Autowired
-    ClienteRepository clienterepository;
+    private ClienteRepository clienterepository;
     @Autowired
-    EnderecoRepository enderecorepository;
+    private EnderecoRepository enderecorepository;
     @Autowired
-    CartaoRepository cartaorepository;
+    private CartaoRepository cartaorepository;
     @Autowired
     private ClientesService clienteService;
 
@@ -107,42 +107,41 @@ public class SiteController {
     }
 
     @GetMapping("/clientes/get/{id}")
-    public ResponseEntity<Clientes> getClientelById(@PathVariable("id") Integer id) {
-        Optional<Clientes> clienteData = clienterepository.findById(id);
-
-        if (clienteData.isPresent()) {
-            return new ResponseEntity<>(clienteData.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Clientes> getClienteById(@PathVariable Integer id) {
+        return clienterepository.findById(id)
+                .map(cliente -> ResponseEntity.ok().body(cliente))
+                .orElse(ResponseEntity.notFound().build());
     }
-    @PutMapping("/clientes/put/{id}")
-    public ResponseEntity<Clientes> updateCliente(@PathVariable("id")  Integer id, @RequestBody Clientes clientes) {
+    @PutMapping("/clientes/put")
+    public ResponseEntity<Clientes> updateCliente(@RequestParam("id") Integer id, @RequestBody Clientes clientes) {
+        // Verifica se o cliente com o ID existe
         Optional<Clientes> clienteData = clienterepository.findById(id);
 
         if (clienteData.isPresent()) {
+            // Atualiza os dados do cliente
             Clientes _clientes = clienteData.get();
             _clientes.setCliNome(clientes.getCliNome());
+            _clientes.setCliGenero(clientes.getCliGenero());  // Adicionando a atualização do gênero
+            _clientes.setCliNascimento(clientes.getCliNascimento());  // Adicionando a atualização da data de nascimento
+            _clientes.setCliIdade(clientes.getCliIdade());  // Adicionando a atualização da idade
+            _clientes.setCliCpf(clientes.getCliCpf());  // Adicionando a atualização do CPF
+            _clientes.setCliEmail(clientes.getCliEmail());  // Adicionando a atualização do email
+            _clientes.setCliTelefone(clientes.getCliTelefone());  // Adicionando a atualização do telefone
+            _clientes.setCliStatus(clientes.getCliStatus());
+            // Salva o cliente atualizado e retorna a resposta com status OK
             return new ResponseEntity<>(clienterepository.save(_clientes), HttpStatus.OK);
         } else {
+            // Se o cliente não for encontrado, retorna resposta de erro NOT_FOUND
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-    @DeleteMapping("/clientes/delete/{id}")
-    public ResponseEntity<HttpStatus> deleteCliente(@PathVariable("id") Integer id) {
-        try {
-            Optional<Clientes> clienteData = clienterepository.findById(id);
-            if (clienteData.isPresent()) {
-                clienterepository.deleteById(id);
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @DeleteMapping("/clientes/delete")
+    public void excluirCliente(@RequestParam("id") Integer clienteId) {
+        clienterepository.deleteById(clienteId);
+    }
+
+    @DeleteMapping("/clientes/deleteall")
     public ResponseEntity<HttpStatus> deleteAllClientes() {
         try {
             clienterepository.deleteAll();
