@@ -106,6 +106,11 @@ public class SiteController {
         return clienteService.buscarClientes(CLI_NOME, CLI_GENERO, CLI_CPF, CLI_EMAIL, CLI_TELEFONE, CLI_IDADE);
     }
 
+    @GetMapping("/cartoes")
+    public List<Cartoes> getCartoesByCliente(@RequestParam("id") Integer clienteId) {
+        return cartaorepository.findByCliente_CliId(clienteId);
+    }
+
     @GetMapping("/clientes/get/{id}")
     public ResponseEntity<Clientes> getClienteById(@PathVariable Integer id) {
         return clienterepository.findById(id)
