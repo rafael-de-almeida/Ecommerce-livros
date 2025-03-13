@@ -119,24 +119,24 @@ public class SiteController {
     }
     @PutMapping("/clientes/put")
     public ResponseEntity<Clientes> updateCliente(@RequestParam("id") Integer id, @RequestBody Clientes clientes) {
-        // Verifica se o cliente com o ID existe
+        System.out.println("Recebendo requisição para atualizar cliente com ID: " + id);
+
         Optional<Clientes> clienteData = clienterepository.findById(id);
 
         if (clienteData.isPresent()) {
-            // Atualiza os dados do cliente
             Clientes _clientes = clienteData.get();
             _clientes.setCliNome(clientes.getCliNome());
-            _clientes.setCliGenero(clientes.getCliGenero());  // Adicionando a atualização do gênero
-            _clientes.setCliNascimento(clientes.getCliNascimento());  // Adicionando a atualização da data de nascimento
-            _clientes.setCliIdade(clientes.getCliIdade());  // Adicionando a atualização da idade
-            _clientes.setCliCpf(clientes.getCliCpf());  // Adicionando a atualização do CPF
-            _clientes.setCliEmail(clientes.getCliEmail());  // Adicionando a atualização do email
-            _clientes.setCliTelefone(clientes.getCliTelefone());  // Adicionando a atualização do telefone
+            _clientes.setCliGenero(clientes.getCliGenero());
+            _clientes.setCliNascimento(clientes.getCliNascimento());
+            _clientes.setCliIdade(clientes.getCliIdade());
+            _clientes.setCliCpf(clientes.getCliCpf());
+            _clientes.setCliEmail(clientes.getCliEmail());
+            _clientes.setCliTelefone(clientes.getCliTelefone());
             _clientes.setCliStatus(clientes.getCliStatus());
-            // Salva o cliente atualizado e retorna a resposta com status OK
+
             return new ResponseEntity<>(clienterepository.save(_clientes), HttpStatus.OK);
         } else {
-            // Se o cliente não for encontrado, retorna resposta de erro NOT_FOUND
+            System.out.println("Cliente não encontrado com ID: " + id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
