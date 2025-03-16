@@ -19,4 +19,8 @@ public class ClientesService {
     public List<Clientes> buscarTodosClientes() {
         return clientesRepository.findAll();
     }
+    public Integer getLastClient() {
+        Clientes lastClient = clientesRepository.findTopByOrderByCliIdDesc();
+        return (lastClient != null) ? lastClient.getCliId() : null;
+    }
 }
