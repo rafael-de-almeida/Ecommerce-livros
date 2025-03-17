@@ -24,4 +24,6 @@ public interface ClienteRepository extends JpaRepository<Clientes, Integer> {
             @Param("email") String email,
             @Param("telefone") String telefone,
             @Param("idade") Integer idade);
+
+    Clientes findTopByOrderByCliIdDesc();
 }

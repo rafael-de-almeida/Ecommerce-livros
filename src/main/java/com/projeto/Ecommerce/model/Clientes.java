@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -26,7 +27,7 @@ public class Clientes {
 
     @JsonProperty("CLI_NASCIMENTO")
     @Column(name = "CLI_NASCIMENTO")
-    private Date cliNascimento;
+    private LocalDate cliNascimento;
 
     @JsonProperty("CLI_GENERO")
     @Column(name = "CLI_GENERO")
