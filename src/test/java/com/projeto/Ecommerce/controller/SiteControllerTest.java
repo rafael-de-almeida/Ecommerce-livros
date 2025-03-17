@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-
+import java.time.LocalDate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 
@@ -46,6 +46,10 @@ public class SiteControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCliNome()).isEqualTo("João Silva");
+        assertThat(response.getBody().getCliCpf()).isEqualTo("123.456.789-00");
+        assertThat(response.getBody().getCliEmail()).isEqualTo("joao@email.com");
+        assertThat(response.getBody().getCliTelefone()).isEqualTo("11999999999");
+        assertThat(response.getBody().getCliStatus()).isEqualTo("Ativo");
     }
 
     @Test
@@ -56,6 +60,7 @@ public class SiteControllerTest {
         cliente.setCliEmail("maria@email.com");
         cliente.setCliTelefone("11988888888");
         cliente.setCliStatus("ativo");
+        cliente.setCliNascimento(LocalDate.of(2005, 10, 1));
 
         cliente = clienteRepository.save(cliente);
 
@@ -74,6 +79,8 @@ public class SiteControllerTest {
         cliente.setCliEmail("carlos@email.com");
         cliente.setCliTelefone("11977777777");
         cliente.setCliStatus("ativo");
+        cliente.setCliNascimento(LocalDate.of(2000, 5, 2));
+
 
         cliente = clienteRepository.save(cliente);
 
@@ -99,6 +106,7 @@ public class SiteControllerTest {
         cliente.setCliEmail("pedro@email.com");
         cliente.setCliTelefone("11966666666");
         cliente.setCliStatus("ativo");
+        cliente.setCliNascimento(LocalDate.of(2005, 10, 1));
 
         cliente = clienteRepository.save(cliente);
 
