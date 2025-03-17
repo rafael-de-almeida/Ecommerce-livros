@@ -18,17 +18,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import io.restassured.response.Response;
 
 
-
-import static io.restassured.RestAssured.given;
-
 import java.time.Duration;
 import java.util.HashMap;
 
 import java.util.Map;
 
+import static io.restassured.RestAssured.given;
+
 
 @SpringBootTest
-class TesteAutomatizadoFrontendBackend {
+class TesteAutomatizadoCriarCliente {
 
 	private WebDriver driver;
 	private WebDriverWait wait;
