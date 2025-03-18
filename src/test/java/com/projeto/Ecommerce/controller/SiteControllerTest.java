@@ -25,11 +25,12 @@ public class SiteControllerTest {
     @Autowired
     private ClienteRepository clienteRepository;
 
+
     private String baseUrl;
 
     @BeforeEach
     void setUp() {
-        baseUrl = "http://localhost:8080" + port + "/site/clientes";
+        baseUrl = "http://localhost:" + port + "/site/clientes/";
     }
 
     @Test
@@ -37,11 +38,16 @@ public class SiteControllerTest {
         Clientes novoCliente = new Clientes();
         novoCliente.setCliNome("João Silva");
         novoCliente.setCliCpf("123.456.789-00");
+        novoCliente.setCliGenero("Masculino");
         novoCliente.setCliEmail("joao@email.com");
+        novoCliente.setCliSenha("123");
         novoCliente.setCliTelefone("11999999999");
         novoCliente.setCliStatus("Ativo");
+        novoCliente.setCliIdade(20);
+        novoCliente.setCliNascimento(LocalDate.of(2005, 10, 1));
+        ResponseEntity<Clientes> response = restTemplate.postForEntity(baseUrl + "post/cliente", novoCliente, Clientes.class);
 
-        ResponseEntity<Clientes> response = restTemplate.postForEntity(baseUrl + "/post/cliente", novoCliente, Clientes.class);
+
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
@@ -50,21 +56,28 @@ public class SiteControllerTest {
         assertThat(response.getBody().getCliEmail()).isEqualTo("joao@email.com");
         assertThat(response.getBody().getCliTelefone()).isEqualTo("11999999999");
         assertThat(response.getBody().getCliStatus()).isEqualTo("Ativo");
+        assertThat(response.getBody().getCliIdade()).isEqualTo(20);
+        assertThat(response.getBody().getCliNascimento()).isEqualTo(LocalDate.of(2005, 10, 1));
+        assertThat(response.getBody().getCliSenha()).isEqualTo("123");
+        assertThat(response.getBody().getCliGenero()).isEqualTo("Masculino");
     }
 
     @Test
     void testBuscarClientePorId() {
-        Clientes cliente = new Clientes();
-        cliente.setCliNome("Maria Souza");
-        cliente.setCliCpf("987.654.321-00");
-        cliente.setCliEmail("maria@email.com");
-        cliente.setCliTelefone("11988888888");
-        cliente.setCliStatus("Ativo");
-        cliente.setCliNascimento(LocalDate.of(2005, 10, 1));
+        Clientes novoCliente = new Clientes();
+        novoCliente.setCliNome("João Silva");
+        novoCliente.setCliCpf("123.456.789-00");
+        novoCliente.setCliGenero("Masculino");
+        novoCliente.setCliEmail("joao@email.com");
+        novoCliente.setCliSenha("123");
+        novoCliente.setCliTelefone("11999999999");
+        novoCliente.setCliStatus("Ativo");
+        novoCliente.setCliIdade(20);
+        novoCliente.setCliNascimento(LocalDate.of(2005, 10, 1));
 
-        cliente = clienteRepository.save(cliente);
+        novoCliente = clienteRepository.save(novoCliente);
 
-        ResponseEntity<Clientes> response = restTemplate.getForEntity(baseUrl + "/get/" + cliente.getCliId(), Clientes.class);
+        ResponseEntity<Clientes> response = restTemplate.getForEntity(baseUrl + "/get/" + novoCliente.getCliId(), Clientes.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -73,46 +86,65 @@ public class SiteControllerTest {
 
     @Test
     void testAtualizarCliente() {
-        Clientes cliente = new Clientes();
-        cliente.setCliNome("Carlos Oliveira");
-        cliente.setCliCpf("111.222.333-44");
-        cliente.setCliEmail("carlos@email.com");
-        cliente.setCliTelefone("11977777777");
-        cliente.setCliStatus("ativo");
-        cliente.setCliNascimento(LocalDate.of(2000, 5, 2));
+        Clientes novoCliente = new Clientes();
+        novoCliente.setCliNome("João Silva");
+        novoCliente.setCliCpf("123.456.789-00");
+        novoCliente.setCliGenero("Masculino");
+        novoCliente.setCliEmail("joao@email.com");
+        novoCliente.setCliSenha("123");
+        novoCliente.setCliTelefone("11999999999");
+        novoCliente.setCliStatus("Ativo");
+        novoCliente.setCliIdade(20);
+        novoCliente.setCliNascimento(LocalDate.of(2005, 10, 1));
 
+        novoCliente = clienteRepository.save(novoCliente);
 
-        cliente = clienteRepository.save(cliente);
-
-        cliente.setCliNome("Carlos Oliveira Atualizado");
+        novoCliente.setCliNome("Carla Oliveira");
+        novoCliente.setCliCpf("321.456.789-00");
+        novoCliente.setCliGenero("Feminino");
+        novoCliente.setCliEmail("carla@email.com");
+        novoCliente.setCliSenha("321");
+        novoCliente.setCliIdade(30);
+        novoCliente.setCliNascimento(LocalDate.of(1990, 5, 5));
+        novoCliente.setCliTelefone("128833737");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Clientes> requestEntity = new HttpEntity<>(cliente, headers);
+        HttpEntity<Clientes> requestEntity = new HttpEntity<>(novoCliente, headers);
 
-        ResponseEntity<Clientes> response = restTemplate.exchange(baseUrl + "/put?id=" + cliente.getCliId(),
+        ResponseEntity<Clientes> response = restTemplate.exchange(baseUrl + "/put?id=" + novoCliente.getCliId(),
                 HttpMethod.PUT, requestEntity, Clientes.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCliNome()).isEqualTo("Carlos Oliveira Atualizado");
+        assertThat(response.getBody().getCliNome()).isEqualTo("Carla Oliveira");
+        assertThat(response.getBody().getCliCpf()).isEqualTo("321.456.789-00");
+        assertThat(response.getBody().getCliGenero()).isEqualTo("Feminino");
+        assertThat(response.getBody().getCliEmail()).isEqualTo("carla@email.com");
+        assertThat(response.getBody().getCliIdade()).isEqualTo(30);
+        assertThat(response.getBody().getCliNascimento()).isEqualTo(LocalDate.of(1990, 5, 5));
+        assertThat(response.getBody().getCliTelefone()).isEqualTo("128833737");
+        assertThat(response.getBody().getCliStatus()).isEqualTo("Ativo");
     }
 
     @Test
     void testExcluirCliente() {
-        Clientes cliente = new Clientes();
-        cliente.setCliNome("Pedro Santos");
-        cliente.setCliCpf("555.666.777-88");
-        cliente.setCliEmail("pedro@email.com");
-        cliente.setCliTelefone("11966666666");
-        cliente.setCliStatus("ativo");
-        cliente.setCliNascimento(LocalDate.of(2005, 10, 1));
+        Clientes novoCliente = new Clientes();
+        novoCliente.setCliNome("João Silva");
+        novoCliente.setCliCpf("123.456.789-00");
+        novoCliente.setCliGenero("Masculino");
+        novoCliente.setCliEmail("joao@email.com");
+        novoCliente.setCliSenha("123");
+        novoCliente.setCliTelefone("11999999999");
+        novoCliente.setCliStatus("Ativo");
+        novoCliente.setCliIdade(20);
+        novoCliente.setCliNascimento(LocalDate.of(2005, 10, 1));
 
-        cliente = clienteRepository.save(cliente);
+        novoCliente = clienteRepository.save(novoCliente);
 
-        restTemplate.delete(baseUrl + "/delete?id=" + cliente.getCliId());
+        restTemplate.delete(baseUrl + "/delete?id=" + novoCliente.getCliId());
 
-        ResponseEntity<Clientes> response = restTemplate.getForEntity(baseUrl + "/get/" + cliente.getCliId(), Clientes.class);
+        ResponseEntity<Clientes> response = restTemplate.getForEntity(baseUrl + "/get/" + novoCliente.getCliId(), Clientes.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
