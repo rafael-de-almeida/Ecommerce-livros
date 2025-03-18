@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -96,15 +98,26 @@ public class SiteController {
             @RequestParam(required = false) String CLI_CPF,
             @RequestParam(required = false) String CLI_EMAIL,
             @RequestParam(required = false) String CLI_TELEFONE,
-            @RequestParam(required = false) Integer CLI_IDADE) {
-
-        // Se todos os parâmetros forem nulos, retorna todos os clientes
+            @RequestParam(required = false) Integer CLI_IDADE,
+            @RequestParam(required = false) String  CLI_NASCIMENTO) {
+        LocalDate nascimento = null;    // Make sure to handle nullable Date
+        if (CLI_NASCIMENTO != null && !CLI_NASCIMENTO.trim().isEmpty()) {
+            try {
+                nascimento = LocalDate.parse(CLI_NASCIMENTO); // Parse the string into LocalDate
+            } catch (DateTimeParseException e) {
+                // Handle the exception if the date is not in the correct format (optional)
+                System.out.println("Invalid date format for nascimento: " + CLI_NASCIMENTO);
+            }
+        }
         if (CLI_NOME == null && CLI_GENERO == null && CLI_CPF == null &&
-                CLI_EMAIL == null && CLI_TELEFONE == null && CLI_IDADE == null) {
+                CLI_EMAIL == null && CLI_TELEFONE == null && CLI_IDADE == null && CLI_NASCIMENTO == null) {
             return clienteService.buscarTodosClientes();
         }
-        return clienteService.buscarClientes(CLI_NOME, CLI_GENERO, CLI_CPF, CLI_EMAIL, CLI_TELEFONE, CLI_IDADE);
+        System.out.println((String.format("Searching for clients with parameters: nome = %s, genero = %s, cpf = %s, email = %s, telefone = %s, idade = %d, nascimento = %s",
+                CLI_NOME, CLI_GENERO, CLI_CPF, CLI_EMAIL, CLI_TELEFONE, CLI_IDADE, CLI_NASCIMENTO)));
+        return clienteService.buscarClientes(CLI_NOME, CLI_GENERO, CLI_CPF, CLI_EMAIL, CLI_TELEFONE, CLI_IDADE, nascimento);
     }
+
 
     @GetMapping("/cartoes")
     public List<Cartoes> getCartoesByCliente(@RequestParam("id") Integer clienteId) {
