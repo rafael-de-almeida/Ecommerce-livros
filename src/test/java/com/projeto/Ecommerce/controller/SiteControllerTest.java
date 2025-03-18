@@ -29,7 +29,7 @@ public class SiteControllerTest {
 
     @BeforeEach
     void setUp() {
-        baseUrl = "http://localhost:" + port + "/site/clientes";
+        baseUrl = "http://localhost:8080" + port + "/site/clientes";
     }
 
     @Test
