@@ -39,7 +39,7 @@ public class SiteControllerTest {
         novoCliente.setCliCpf("123.456.789-00");
         novoCliente.setCliEmail("joao@email.com");
         novoCliente.setCliTelefone("11999999999");
-        novoCliente.setCliStatus("ativo");
+        novoCliente.setCliStatus("Ativo");
 
         ResponseEntity<Clientes> response = restTemplate.postForEntity(baseUrl + "/post/cliente", novoCliente, Clientes.class);
 
@@ -59,7 +59,7 @@ public class SiteControllerTest {
         cliente.setCliCpf("987.654.321-00");
         cliente.setCliEmail("maria@email.com");
         cliente.setCliTelefone("11988888888");
-        cliente.setCliStatus("ativo");
+        cliente.setCliStatus("Ativo");
         cliente.setCliNascimento(LocalDate.of(2005, 10, 1));
 
         cliente = clienteRepository.save(cliente);
