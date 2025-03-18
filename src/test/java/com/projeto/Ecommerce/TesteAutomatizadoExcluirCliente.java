@@ -19,7 +19,7 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 
 @SpringBootTest
-public class testeAutomatizadoExcluirCliente {
+public class TesteAutomatizadoExcluirCliente {
     private WebDriver driver;
     private WebDriverWait wait;
 
