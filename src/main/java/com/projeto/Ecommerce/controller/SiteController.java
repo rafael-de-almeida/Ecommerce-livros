@@ -69,6 +69,7 @@ public class SiteController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+
     }
     @PostMapping("/clientes/post/cartao")
     public ResponseEntity<Cartoes> createCartao(@RequestParam("id") Integer id, @RequestBody Cartoes cartao) {
@@ -123,6 +124,11 @@ public class SiteController {
     public List<Cartoes> getCartoesByCliente(@RequestParam("id") Integer clienteId) {
         return cartaorepository.findByCliente_CliId(clienteId);
     }
+    @GetMapping("enderecos")
+    public List <Enderecos> getEnderecosByCliente(@RequestParam("id") Integer clienteId) {
+        return enderecorepository.findByCliente_CliId(clienteId);
+    }
+
 
     @GetMapping("/clientes/get/{id}")
     public ResponseEntity<Clientes> getClienteById(@PathVariable Integer id) {
