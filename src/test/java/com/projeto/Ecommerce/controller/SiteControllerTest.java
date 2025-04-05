@@ -81,7 +81,7 @@ public class SiteControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCliNome()).isEqualTo("Maria Souza");
+        assertThat(response.getBody().getCliNome()).isEqualTo("João Silva");
     }
 
     @Test
