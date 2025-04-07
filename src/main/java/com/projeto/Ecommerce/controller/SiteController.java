@@ -193,5 +193,16 @@ public class SiteController {
     public List<Livros> listarLivros() {
         return livroRepository.findAll();
     }
+    @GetMapping("/livros/{id}")
+    public ResponseEntity<Livros> getLivroPorId(@PathVariable Integer id) {
+        Optional<Livros> livroOptional = livroRepository.findById(id);
+
+        if (livroOptional.isPresent()) {
+            return ResponseEntity.ok(livroOptional.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 }
