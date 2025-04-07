@@ -1,5 +1,6 @@
 package com.projeto.Ecommerce.controller;
 
+import com.projeto.Ecommerce.dto.LivroResumoDTO;
 import com.projeto.Ecommerce.model.Cartoes;
 import com.projeto.Ecommerce.model.Clientes;
 import com.projeto.Ecommerce.model.Enderecos;
@@ -9,6 +10,7 @@ import com.projeto.Ecommerce.repository.ClienteRepository;
 import com.projeto.Ecommerce.repository.EnderecoRepository;
 import com.projeto.Ecommerce.repository.LivroRepository;
 import com.projeto.Ecommerce.service.ClientesService;
+import com.projeto.Ecommerce.service.OrdemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.time.format.DateTimeParseException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Scanner;
 
 
 @CrossOrigin
@@ -34,9 +37,11 @@ public class SiteController {
     @Autowired
     private CartaoRepository cartaorepository;
     @Autowired
-    private LivroRepository livroRepository;
-    @Autowired
     private ClientesService clienteService;
+    @Autowired
+    private OrdemService ordemService;
+    @Autowired
+    private LivroRepository livroRepository;
 
     @PostMapping("/clientes/post/cliente")
     public ResponseEntity<Clientes> createCliente(@RequestBody Clientes clientes) {
@@ -164,10 +169,6 @@ public class SiteController {
         }
     }
 
-
-
-
-
     @DeleteMapping("/clientes/delete")
     public void excluirCliente(@RequestParam("id") Integer clienteId) {
         clienterepository.deleteById(clienteId);
@@ -183,8 +184,14 @@ public class SiteController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    @GetMapping("/clientes/pedido/get/{id}")
+    public ResponseEntity<List<LivroResumoDTO>> getLivrosDaOrdem(@PathVariable Long id) {
+        List<LivroResumoDTO> livros = ordemService.listarLivrosDaOrdem(id);
+        return ResponseEntity.ok(livros);
+    }
     @GetMapping("/livros")
     public List<Livros> listarLivros() {
         return livroRepository.findAll();
     }
+
 }
