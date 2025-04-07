@@ -3,9 +3,11 @@ package com.projeto.Ecommerce.controller;
 import com.projeto.Ecommerce.model.Cartoes;
 import com.projeto.Ecommerce.model.Clientes;
 import com.projeto.Ecommerce.model.Enderecos;
+import com.projeto.Ecommerce.model.Livros;
 import com.projeto.Ecommerce.repository.CartaoRepository;
 import com.projeto.Ecommerce.repository.ClienteRepository;
 import com.projeto.Ecommerce.repository.EnderecoRepository;
+import com.projeto.Ecommerce.repository.LivroRepository;
 import com.projeto.Ecommerce.service.ClientesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,6 +33,8 @@ public class SiteController {
     private EnderecoRepository enderecorepository;
     @Autowired
     private CartaoRepository cartaorepository;
+    @Autowired
+    private LivroRepository livroRepository;
     @Autowired
     private ClientesService clienteService;
 
@@ -160,6 +164,10 @@ public class SiteController {
         }
     }
 
+
+
+
+
     @DeleteMapping("/clientes/delete")
     public void excluirCliente(@RequestParam("id") Integer clienteId) {
         clienterepository.deleteById(clienteId);
@@ -174,5 +182,9 @@ public class SiteController {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+    @GetMapping("/livros")
+    public List<Livros> listarLivros() {
+        return livroRepository.findAll();
     }
 }

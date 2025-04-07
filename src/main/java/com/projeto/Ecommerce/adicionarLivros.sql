@@ -267,4 +267,5 @@ INSERT INTO livros (
              1216,
              'O Senhor dos Anéis é uma das maiores obras de fantasia épica da literatura mundial, acompanhando a jornada de Frodo Bolseiro para destruir o Um Anel e derrotar Sauron.',
              '16 x 23 cm'
+
          );

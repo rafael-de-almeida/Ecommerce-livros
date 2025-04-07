@@ -49,10 +49,16 @@ public class Livros {
     @Column(name = "LIV_SINOPSE", columnDefinition = "TEXT")
     private String livSinopse;
 
+    @JsonProperty("LIV_VENDA")
+    @Column(name = "LIV_VENDA")
+    private String livVenda;
+
     @JsonProperty("LIV_DIMENSAO")
     @Column(name = "LIV_DIMENSAO")
     private String livDimensao;
 
     @Column(name = "LIV_IMAGEM")
     private String livImagem;
+
+
 }
