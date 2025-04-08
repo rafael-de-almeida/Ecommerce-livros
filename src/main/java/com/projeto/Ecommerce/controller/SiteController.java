@@ -190,9 +190,20 @@ public class SiteController {
         return ResponseEntity.ok(livros);
     }
     @GetMapping("/livros")
-    public List<Livros> listarLivros() {
-        return livroRepository.findAll();
+    public ResponseEntity<List<Livros>> getLivrosByFiltro(
+            @RequestParam(required = false) String autor,
+            @RequestParam(required = false) String categoria,
+            @RequestParam(required = false) Integer ano,
+            @RequestParam(required = false) String titulo,
+            @RequestParam(required = false) String editora,
+            @RequestParam(required = false) String isbn,
+            @RequestParam(required = false) Integer qtdpaginas,
+            @RequestParam(required = false) String codbarras
+    ) {
+        List<Livros> livros = livroRepository.findLivrosBy(autor, categoria, ano, titulo, editora, isbn, qtdpaginas, codbarras);
+        return ResponseEntity.ok(livros);
     }
+
     @GetMapping("/livros/{id}")
     public ResponseEntity<Livros> getLivroPorId(@PathVariable Integer id) {
         Optional<Livros> livroOptional = livroRepository.findById(id);

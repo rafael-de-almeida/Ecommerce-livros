@@ -22,9 +22,10 @@ public class Livros {
     @Column(name = "LIV_AUTOR")
     private String livAutor;
 
-    @JsonProperty("LIV_ANO")
+    @JsonProperty
     @Column(name = "LIV_ANO")
-    private LocalDate livAno;
+    private Integer livAno;
+
 
     @Column(name = "LIV_TITULO")
     private String livTitulo;
@@ -60,5 +61,9 @@ public class Livros {
     @Column(name = "LIV_IMAGEM")
     private String livImagem;
 
+    @Column (name = "LIV_CATEGORIA")
+    private String livCategoria;
 
+    @Column (name = "LIV_COD_BARRAS")
+    private String liv_cod_barras;
 }
