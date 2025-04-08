@@ -1,6 +1,7 @@
 package com.projeto.Ecommerce.controller;
 
 import com.projeto.Ecommerce.dto.LivroResumoDTO;
+import com.projeto.Ecommerce.dto.OrdemRequestDTO;
 import com.projeto.Ecommerce.model.Cartoes;
 import com.projeto.Ecommerce.model.Clientes;
 import com.projeto.Ecommerce.model.Enderecos;
@@ -22,7 +23,6 @@ import java.time.format.DateTimeParseException;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 
 
 @CrossOrigin
@@ -201,6 +201,15 @@ public class SiteController {
             return ResponseEntity.ok(livroOptional.get());
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+    @PostMapping("/clientes/pedido/post")
+    public ResponseEntity<String> criarOrdem(@RequestBody OrdemRequestDTO ordemRequestDTO) {
+        try {
+            ordemService.criarOrdem(ordemRequestDTO);
+            return ResponseEntity.ok("Ordem criada com sucesso!");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erro ao criar ordem: " + e.getMessage());
         }
     }
 
