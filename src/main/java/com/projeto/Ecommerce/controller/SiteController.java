@@ -2,26 +2,25 @@ package com.projeto.Ecommerce.controller;
 
 import com.projeto.Ecommerce.dto.LivroResumoDTO;
 import com.projeto.Ecommerce.dto.OrdemRequestDTO;
-import com.projeto.Ecommerce.model.Cartoes;
-import com.projeto.Ecommerce.model.Clientes;
-import com.projeto.Ecommerce.model.Enderecos;
-import com.projeto.Ecommerce.model.Livros;
-import com.projeto.Ecommerce.repository.CartaoRepository;
-import com.projeto.Ecommerce.repository.ClienteRepository;
-import com.projeto.Ecommerce.repository.EnderecoRepository;
-import com.projeto.Ecommerce.repository.LivroRepository;
+import com.projeto.Ecommerce.dto.OrdemResumoDTO;
+import com.projeto.Ecommerce.model.*;
+import com.projeto.Ecommerce.repository.*;
 import com.projeto.Ecommerce.service.ClientesService;
 import com.projeto.Ecommerce.service.OrdemService;
+import org.springframework.format.annotation.DateTimeFormat;
+import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -42,6 +41,8 @@ public class SiteController {
     private OrdemService ordemService;
     @Autowired
     private LivroRepository livroRepository;
+    @Autowired
+    private OrdemRepository ordemRepository;
 
     @PostMapping("/clientes/post/cliente")
     public ResponseEntity<Clientes> createCliente(@RequestBody Clientes clientes) {
@@ -223,6 +224,31 @@ public class SiteController {
             return ResponseEntity.status(500).body("Erro ao criar ordem: " + e.getMessage());
         }
     }
+
+    @GetMapping("ordens/resumo")
+    public ResponseEntity<List<OrdemResumoDTO>> buscarOrdens(
+            @RequestParam(required = false) String nomeCliente,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim
+    ) {
+        List<OrdemResumoDTO> ordens = ordemService.buscarOrdens(nomeCliente, status, dataInicio, dataFim);
+        return ResponseEntity.ok(ordens);
+    }
+
+    @PutMapping("ordens/{id}/status")
+    public ResponseEntity<Void> alterarStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String novoStatus = body.get("status");
+
+        Ordem ordem = ordemRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem não encontrada"));
+
+        ordem.setStatus(novoStatus);
+        ordemRepository.save(ordem);
+
+        return ResponseEntity.ok().build();
+    }
+
 
 
 }

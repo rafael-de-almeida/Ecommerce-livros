@@ -1,13 +1,11 @@
 package com.projeto.Ecommerce.service;
 
-import com.projeto.Ecommerce.dto.LivroResumoDTO;
-import com.projeto.Ecommerce.dto.OrdemLivroDTO;
-import com.projeto.Ecommerce.dto.OrdemRequestDTO;
-import com.projeto.Ecommerce.dto.PagamentoDTO;
+import com.projeto.Ecommerce.dto.*;
 import com.projeto.Ecommerce.model.*;
 import com.projeto.Ecommerce.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -87,5 +85,25 @@ public class OrdemService {
 
     public List<LivroResumoDTO> listarLivrosDaOrdem(Long ordemId) {
         return ordemLivroRepository.buscarLivrosDaOrdem(ordemId);
+    }
+
+    public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String status, LocalDate dataInicio, LocalDate dataFim) {
+        List<Ordem> ordens = ordemRepository.buscarOrdensComFiltros(nomeCliente, status,dataInicio,dataFim);
+
+        return ordens.stream().map(ordem -> {
+            OrdemResumoDTO dto = new OrdemResumoDTO();
+            dto.setNumeroPedido(ordem.getId());
+            dto.setNomeCliente(ordem.getCliente().getCliNome());
+            dto.setValorTotal(ordem.getPrecoTotal());
+            dto.setStatus(ordem.getStatus());
+            dto.setData(ordem.getData());
+
+            List<String> titulos = ordem.getLivros().stream()
+                    .map(ol -> ol.getLivro().getLivTitulo())
+                    .toList();
+
+            dto.setLivros(titulos);
+            return dto;
+        }).toList();
     }
 }
