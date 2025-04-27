@@ -1,48 +1,38 @@
 package com.projeto.Ecommerce.controller;
 
-import com.projeto.Ecommerce.dto.LivroResumoDTO;
-import com.projeto.Ecommerce.dto.OrdemRequestDTO;
-import com.projeto.Ecommerce.dto.OrdemResumoDTO;
-import com.projeto.Ecommerce.model.*;
-import com.projeto.Ecommerce.repository.*;
+import com.projeto.Ecommerce.model.Clientes;
+import com.projeto.Ecommerce.model.Cartoes;
+import com.projeto.Ecommerce.model.Enderecos;
+import com.projeto.Ecommerce.repository.CartaoRepository;
+import com.projeto.Ecommerce.repository.ClienteRepository;
+import com.projeto.Ecommerce.repository.EnderecoRepository;
 import com.projeto.Ecommerce.service.ClientesService;
-import com.projeto.Ecommerce.service.OrdemService;
-import org.springframework.format.annotation.DateTimeFormat;
-import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
 
 @CrossOrigin
 @RestController
 @RequestMapping("/site")
-public class SiteController {
+public class ClienteController {
 
     @Autowired
     private ClienteRepository clienterepository;
+
     @Autowired
     private EnderecoRepository enderecorepository;
+
     @Autowired
     private CartaoRepository cartaorepository;
+
     @Autowired
     private ClientesService clienteService;
-    @Autowired
-    private OrdemService ordemService;
-    @Autowired
-    private LivroRepository livroRepository;
-    @Autowired
-    private OrdemRepository ordemRepository;
 
     @PostMapping("/clientes/post/cliente")
     public ResponseEntity<Clientes> createCliente(@RequestBody Clientes clientes) {
@@ -58,7 +48,7 @@ public class SiteController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    //@PathVariable Integer id
+
     @PostMapping("/clientes/post/endereco")
     public ResponseEntity<Enderecos> createEndereco(@RequestParam("id") String id, @RequestBody Enderecos enderecos) {
         System.out.println("Recebido: " + enderecos);
@@ -67,8 +57,7 @@ public class SiteController {
             return ResponseEntity.badRequest().body(null);
         }
         try {
-
-            Clientes cliente= clienterepository.findById(Integer.valueOf(id)).orElse(null);
+            Clientes cliente = clienterepository.findById(Integer.valueOf(id)).orElse(null);
             if (cliente == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
@@ -79,8 +68,8 @@ public class SiteController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
     }
+
     @PostMapping("/clientes/post/cartao")
     public ResponseEntity<Cartoes> createCartao(@RequestParam("id") Integer id, @RequestBody Cartoes cartao) {
         System.out.println("Recebido: " + cartao);
@@ -88,7 +77,6 @@ public class SiteController {
             return ResponseEntity.badRequest().body(null);
         }
         try {
-
             Clientes cliente = clienterepository.findById(id).orElse(null);
             if (cliente == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -110,13 +98,12 @@ public class SiteController {
             @RequestParam(required = false) String CLI_EMAIL,
             @RequestParam(required = false) String CLI_TELEFONE,
             @RequestParam(required = false) Integer CLI_IDADE,
-            @RequestParam(required = false) String  CLI_NASCIMENTO) {
-        LocalDate nascimento = null;    // Make sure to handle nullable Date
+            @RequestParam(required = false) String CLI_NASCIMENTO) {
+        LocalDate nascimento = null;
         if (CLI_NASCIMENTO != null && !CLI_NASCIMENTO.trim().isEmpty()) {
             try {
-                nascimento = LocalDate.parse(CLI_NASCIMENTO); // Parse the string into LocalDate
+                nascimento = LocalDate.parse(CLI_NASCIMENTO);
             } catch (DateTimeParseException e) {
-                // Handle the exception if the date is not in the correct format (optional)
                 System.out.println("Invalid date format for nascimento: " + CLI_NASCIMENTO);
             }
         }
@@ -124,21 +111,18 @@ public class SiteController {
                 CLI_EMAIL == null && CLI_TELEFONE == null && CLI_IDADE == null && CLI_NASCIMENTO == null) {
             return clienteService.buscarTodosClientes();
         }
-        System.out.println((String.format("Searching for clients with parameters: nome = %s, genero = %s, cpf = %s, email = %s, telefone = %s, idade = %d, nascimento = %s",
-                CLI_NOME, CLI_GENERO, CLI_CPF, CLI_EMAIL, CLI_TELEFONE, CLI_IDADE, CLI_NASCIMENTO)));
         return clienteService.buscarClientes(CLI_NOME, CLI_GENERO, CLI_CPF, CLI_EMAIL, CLI_TELEFONE, CLI_IDADE, nascimento);
     }
-
 
     @GetMapping("/cartoes")
     public List<Cartoes> getCartoesByCliente(@RequestParam("id") Integer clienteId) {
         return cartaorepository.findByCliente_CliId(clienteId);
     }
-    @GetMapping("enderecos")
-    public List <Enderecos> getEnderecosByCliente(@RequestParam("id") Integer clienteId) {
+
+    @GetMapping("/enderecos")
+    public List<Enderecos> getEnderecosByCliente(@RequestParam("id") Integer clienteId) {
         return enderecorepository.findByCliente_CliId(clienteId);
     }
-
 
     @GetMapping("/clientes/get/{id}")
     public ResponseEntity<Clientes> getClienteById(@PathVariable Integer id) {
@@ -146,6 +130,7 @@ public class SiteController {
                 .map(cliente -> ResponseEntity.ok().body(cliente))
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @PutMapping("/clientes/put")
     public ResponseEntity<Clientes> updateCliente(@RequestParam("id") Integer id, @RequestBody Clientes clientes) {
         System.out.println("Recebendo requisição para atualizar cliente com ID: " + id);
@@ -165,7 +150,6 @@ public class SiteController {
 
             return new ResponseEntity<>(clienterepository.save(_clientes), HttpStatus.OK);
         } else {
-            System.out.println("Cliente não encontrado com ID: " + id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -185,70 +169,4 @@ public class SiteController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    @GetMapping("/clientes/pedido/get/{id}")
-    public ResponseEntity<List<LivroResumoDTO>> getLivrosDaOrdem(@PathVariable Long id) {
-        List<LivroResumoDTO> livros = ordemService.listarLivrosDaOrdem(id);
-        return ResponseEntity.ok(livros);
-    }
-    @GetMapping("/livros")
-    public ResponseEntity<List<Livros>> getLivrosByFiltro(
-            @RequestParam(required = false) String autor,
-            @RequestParam(required = false) String categoria,
-            @RequestParam(required = false) Integer ano,
-            @RequestParam(required = false) String titulo,
-            @RequestParam(required = false) String editora,
-            @RequestParam(required = false) String isbn,
-            @RequestParam(required = false) Integer qtdpaginas,
-            @RequestParam(required = false) String codbarras
-    ) {
-        List<Livros> livros = livroRepository.findLivrosBy(autor, categoria, ano, titulo, editora, isbn, qtdpaginas, codbarras);
-        return ResponseEntity.ok(livros);
-    }
-
-    @GetMapping("/livros/{id}")
-    public ResponseEntity<Livros> getLivroPorId(@PathVariable Integer id) {
-        Optional<Livros> livroOptional = livroRepository.findById(id);
-
-        if (livroOptional.isPresent()) {
-            return ResponseEntity.ok(livroOptional.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-    @PostMapping("/clientes/pedido/post")
-    public ResponseEntity<String> criarOrdem(@RequestBody OrdemRequestDTO ordemRequestDTO) {
-        try {
-            ordemService.criarOrdem(ordemRequestDTO);
-            return ResponseEntity.ok("Ordem criada com sucesso!");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Erro ao criar ordem: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("ordens/resumo")
-    public ResponseEntity<List<OrdemResumoDTO>> buscarOrdens(
-            @RequestParam(required = false) String nomeCliente,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim
-    ) {
-        List<OrdemResumoDTO> ordens = ordemService.buscarOrdens(nomeCliente, status, dataInicio, dataFim);
-        return ResponseEntity.ok(ordens);
-    }
-
-    @PutMapping("ordens/{id}/status")
-    public ResponseEntity<Void> alterarStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        String novoStatus = body.get("status");
-
-        Ordem ordem = ordemRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem não encontrada"));
-
-        ordem.setStatus(novoStatus);
-        ordemRepository.save(ordem);
-
-        return ResponseEntity.ok().build();
-    }
-
-
-
 }
