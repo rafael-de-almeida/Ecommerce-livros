@@ -40,6 +40,6 @@ public class Ordem {
     @JoinColumn(name = "end_id")
     private Enderecos endereco;
 
-    @OneToMany(mappedBy = "ordem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "ordem", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<OrdemLivro> livros;
 }

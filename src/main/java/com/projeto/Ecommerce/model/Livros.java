@@ -16,7 +16,7 @@ public class Livros {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "LIV_ID")
-    private Integer livId;
+    private Long livId;
 
     @JsonProperty("LIV_AUTOR")
     @Column(name = "LIV_AUTOR")

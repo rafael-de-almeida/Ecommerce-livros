@@ -30,6 +30,13 @@ public interface OrdemRepository extends JpaRepository<Ordem, Long> {
             @Param("valorTotal") BigDecimal valorTotal,
             @Param("numeroPedido") Long numeroPedido // ← Novo parâmetro
     );
+    @Query("SELECT o FROM Ordem o " +
+            "LEFT JOIN FETCH o.livros ol " +
+            "LEFT JOIN FETCH ol.livro l " +
+            "WHERE o.id = :id")
+    Ordem buscarOrdemComLivrosPorId(@Param("id") Long id);
+
+
 
 
 

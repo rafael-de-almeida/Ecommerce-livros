@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class EstoqueDTO {
     private Integer id;
-    private Integer idLivro;
+    private Long idLivro;
     private String tituloLivro;
     private LocalDate dataEntrada;
     private String fornecedor;

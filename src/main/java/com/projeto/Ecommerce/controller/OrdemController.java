@@ -3,6 +3,7 @@ package com.projeto.Ecommerce.controller;
 import com.projeto.Ecommerce.dto.LivroResumoDTO;
 import com.projeto.Ecommerce.dto.OrdemRequestDTO;
 import com.projeto.Ecommerce.dto.OrdemResumoDTO;
+import com.projeto.Ecommerce.dto.TrocaRequestDTO;
 import com.projeto.Ecommerce.model.Ordem;
 import com.projeto.Ecommerce.repository.OrdemRepository;
 import com.projeto.Ecommerce.service.OrdemService;
@@ -76,5 +77,15 @@ public class OrdemController {
 
         return ResponseEntity.ok().build();
     }
+    @PatchMapping("/clientes/pedido/troca")
+    public ResponseEntity<String> solicitarTroca(@RequestBody TrocaRequestDTO trocaRequestDTO) {
+        try {
+            ordemService.solicitarTroca(trocaRequestDTO);
+            return ResponseEntity.ok("Ordem de troca criada com sucesso!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro: " + e.getMessage());
+        }
+    }
+
 }
 
