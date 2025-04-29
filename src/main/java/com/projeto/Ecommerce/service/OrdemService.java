@@ -5,6 +5,7 @@ import com.projeto.Ecommerce.model.*;
 import com.projeto.Ecommerce.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class OrdemService {
     private final OrdemLivroRepository ordemLivroRepository;
     private final PagamentoRepository pagamentoRepository;
     private final CartaoRepository cartaoRepository;
+    private final CupomRepository cupomRepository;
 
     public OrdemService(
             OrdemRepository ordemRepository,
@@ -26,7 +28,8 @@ public class OrdemService {
             LivroRepository livroRepository,
             OrdemLivroRepository ordemLivroRepository,
             PagamentoRepository pagamentoRepository,
-            CartaoRepository cartaoRepository
+            CartaoRepository cartaoRepository,
+            CupomRepository cupomRepository
     ) {
         this.ordemRepository = ordemRepository;
         this.clienteRepository = clienteRepository;
@@ -35,6 +38,7 @@ public class OrdemService {
         this.ordemLivroRepository = ordemLivroRepository;
         this.pagamentoRepository = pagamentoRepository;
         this.cartaoRepository = cartaoRepository;
+        this.cupomRepository = cupomRepository;
     }
 
     public void criarOrdem(OrdemRequestDTO dto) {
@@ -46,9 +50,48 @@ public class OrdemService {
         Enderecos endereco = enderecoRepository.findById(dto.getEnderecoId())
                 .orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
 
+        // Buscar cupom
+        Cupom cupom = null;
+        if (dto.getCodigoCupom() != null) {
+            cupom = cupomRepository.findByCodigo(dto.getCodigoCupom())
+                    .orElseThrow(() -> new RuntimeException("Cupom inválido"));
+
+            if (cupom.isTroca() && cupom.getCliente() != null && !cupom.getCliente().equals(cliente)) {
+                throw new RuntimeException("Este cupom de troca não é válido para este cliente");
+            }
+
+            // Verificar se o cupom está dentro da validade
+            if (cupom.getValidade() != null && cupom.getValidade().isBefore(LocalDate.now())) {
+                throw new RuntimeException("Cupom expirado");
+            }
+
+            // Verificar limite de uso
+            if (cupom.getUsado() >= cupom.getUsoMaximo()) {
+                throw new RuntimeException("Limite de uso do cupom atingido");
+            }
+        }
+
         // Criar a ordem
         Ordem ordem = new Ordem();
-        ordem.setPrecoTotal(dto.getPrecoTotal());
+        ordem.setPrecoTotal(dto.getPrecoTotal()); // Preço total inicial
+
+        // Aplicar o desconto do cupom (se existir)
+        if (cupom != null) {
+            if (cupom.getTipo() == Cupom.TipoDesconto.PORCENTAGEM) {
+                // Calcular o desconto com base no percentual
+                BigDecimal desconto = cupom.getValor()
+                        .divide(new BigDecimal("100"));
+                BigDecimal valorDesconto = ordem.getPrecoTotal().multiply(desconto); // Aplica o desconto no preço total
+                ordem.setPrecoTotal(ordem.getPrecoTotal().subtract(valorDesconto)); // Subtrai o desconto do preço total
+            } else if (cupom.getTipo() == Cupom.TipoDesconto.FIXO) {
+                ordem.setPrecoTotal(ordem.getPrecoTotal().subtract(cupom.getValor()));
+            }
+
+            // Atualizar o uso do cupom
+            cupom.setUsado(cupom.getUsado() + 1);
+            cupomRepository.save(cupom);
+        }
+
         ordem.setStatus(dto.getStatus());
         ordem.setData(dto.getData());
         ordem.setCliente(cliente);
@@ -88,7 +131,7 @@ public class OrdemService {
     }
 
     public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String status, LocalDate dataInicio, LocalDate dataFim) {
-        List<Ordem> ordens = ordemRepository.buscarOrdensComFiltros(nomeCliente, status,dataInicio,dataFim);
+        List<Ordem> ordens = ordemRepository.buscarOrdensComFiltros(nomeCliente, status, dataInicio, dataFim);
 
         return ordens.stream().map(ordem -> {
             OrdemResumoDTO dto = new OrdemResumoDTO();
