@@ -3,6 +3,7 @@ package com.projeto.Ecommerce.controller;
 import com.projeto.Ecommerce.dto.EstoqueCreateDTO;
 import com.projeto.Ecommerce.dto.EstoqueDTO;
 import com.projeto.Ecommerce.service.EstoqueService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.List;
 @RequestMapping("/site")
 public class EstoqueController {
 
+    @Autowired
     EstoqueService estoqueService;
 
 @GetMapping("/estoque/get")
@@ -21,7 +23,7 @@ public class EstoqueController {
         return estoqueService.listarTodos();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/estoque/get/{id}")
     public EstoqueDTO buscarPorId(@PathVariable Long id) {
         return estoqueService.buscarPorId(id);
     }

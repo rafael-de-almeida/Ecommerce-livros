@@ -74,6 +74,7 @@ public class EstoqueService {
         EstoqueDTO dto = new EstoqueDTO();
         dto.setId(estoque.getId());
         dto.setIdLivro(estoque.getLivro().getLivId());
+        dto.setTituloLivro(estoque.getLivro().getLivTitulo());
         dto.setDataEntrada(estoque.getDataEntrada());
         dto.setFornecedor(estoque.getFornecedor());
         dto.setQuantidade(estoque.getQuantidade());
