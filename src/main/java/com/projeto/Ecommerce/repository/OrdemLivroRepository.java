@@ -12,10 +12,16 @@ import java.util.List;
 @Repository
 public interface OrdemLivroRepository extends JpaRepository<OrdemLivro, Long> {
 
-    @Query("SELECT new com.projeto.Ecommerce.dto.LivroResumoDTO(l.livTitulo, ol.quantidade, ol.preco) " +
-            "FROM OrdemLivro ol JOIN ol.livro l WHERE ol.ordem.id = :ordemId")
+    @Query("SELECT new com.projeto.Ecommerce.dto.LivroResumoDTO(c.cliId, o.id, o.data, l.livTitulo, ol.quantidade, ol.preco, o.status, o.precoTotal) " +
+            "FROM OrdemLivro ol " +
+            "JOIN ol.livro l " +
+            "JOIN ol.ordem o " +
+            "JOIN o.cliente c " +
+            "WHERE c.cliId = :clienteId")
+    List<LivroResumoDTO> findPedidosByClienteId(@Param("clienteId") Long clienteId);
 
-    List<LivroResumoDTO> buscarLivrosDaOrdem(Long ordemId);
+
+
 
 }
 
