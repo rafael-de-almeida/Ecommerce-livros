@@ -28,6 +28,11 @@ public class OrdemController {
     @Autowired
     private OrdemRepository ordemRepository;
 
+//    @GetMapping("/clientes/pedido/get/{id}")
+//    public ResponseEntity<List<LivroResumoDTO>> getAllOrdem(@PathVariable Long id) {
+//        List<LivroResumoDTO> livros = ordemService.listarLivrosDaOrdem(id);
+//        return ResponseEntity.ok(livros);
+//    }
     @GetMapping("/clientes/pedido/get/{id}")
     public ResponseEntity<List<LivroResumoDTO>> getLivrosDaOrdem(@PathVariable Long id) {
         List<LivroResumoDTO> livros = ordemService.listarLivrosDaOrdem(id);

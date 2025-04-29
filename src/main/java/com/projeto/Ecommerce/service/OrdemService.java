@@ -127,7 +127,7 @@ public class OrdemService {
     }
 
     public List<LivroResumoDTO> listarLivrosDaOrdem(Long ordemId) {
-        return ordemLivroRepository.buscarLivrosDaOrdem(ordemId);
+        return ordemLivroRepository.findPedidosByClienteId(ordemId);
     }
 
     public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String status, LocalDate dataInicio, LocalDate dataFim) {

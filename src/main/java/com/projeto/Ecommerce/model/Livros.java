@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -22,7 +24,7 @@ public class Livros {
 
     @JsonProperty
     @Column(name = "LIV_ANO")
-    private Integer livAno;
+    private LocalDate livAno;
 
 
     @Column(name = "LIV_TITULO")
