@@ -99,7 +99,7 @@ public class ClienteController {
             @RequestParam(required = false) String CLI_TELEFONE,
             @RequestParam(required = false) Integer CLI_IDADE,
             @RequestParam(required = false) String CLI_NASCIMENTO) {
-        LocalDate nascimento = null;
+            LocalDate nascimento = null;
         if (CLI_NASCIMENTO != null && !CLI_NASCIMENTO.trim().isEmpty()) {
             try {
                 nascimento = LocalDate.parse(CLI_NASCIMENTO);
