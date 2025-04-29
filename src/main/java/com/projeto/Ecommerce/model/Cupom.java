@@ -1,11 +1,15 @@
 package com.projeto.Ecommerce.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+@AllArgsConstructor
+@NoArgsConstructor
 @Setter
 @Getter
 @Entity
@@ -31,14 +35,16 @@ public class Cupom {
     private Integer usado = 0;
 
     @ManyToOne
+    @JoinColumn(name = "cliente_id")
     private Clientes cliente; // só preenchido se for um cupom de troca
 
     @ManyToOne
+    @JoinColumn(name = "origem_troca_ord_id")
     private Ordem origemTroca; // opcional, usado apenas em cupom de troca
 
     public enum TipoDesconto {
-        FIXO,         // R$10,00 de desconto
-        PORCENTAGEM   // 10% de desconto
+        TROCA,
+        PROMOCIONAL,
     }
 }
 
