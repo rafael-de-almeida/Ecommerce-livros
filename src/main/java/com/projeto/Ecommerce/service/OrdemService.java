@@ -5,6 +5,7 @@ import com.projeto.Ecommerce.model.*;
 import com.projeto.Ecommerce.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -87,8 +88,12 @@ public class OrdemService {
         return ordemLivroRepository.findPedidosByClienteId(ordemId);
     }
 
-    public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String status, LocalDate dataInicio, LocalDate dataFim) {
-        List<Ordem> ordens = ordemRepository.buscarOrdensComFiltros(nomeCliente, status,dataInicio,dataFim);
+    public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String tituloLivro, String status,
+                                             LocalDate dataInicio, LocalDate dataFim,
+                                             BigDecimal valorTotal, Long numeroPedido) {
+        List<Ordem> ordens = ordemRepository.buscarOrdensComFiltros(
+                nomeCliente, tituloLivro, status, dataInicio, dataFim, valorTotal, numeroPedido
+        );
 
         return ordens.stream().map(ordem -> {
             OrdemResumoDTO dto = new OrdemResumoDTO();
@@ -106,4 +111,5 @@ public class OrdemService {
             return dto;
         }).toList();
     }
+
 }

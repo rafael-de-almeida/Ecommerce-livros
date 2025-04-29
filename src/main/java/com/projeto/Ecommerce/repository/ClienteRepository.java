@@ -20,7 +20,7 @@ public interface ClienteRepository extends JpaRepository<Clientes, Integer> {
             "AND ( :email IS NULL OR c.cliEmail LIKE :email ) " +
             "AND ( :telefone IS NULL OR c.cliTelefone = :telefone ) " +
             "AND ( :idade IS NULL OR c.cliIdade = :idade ) " +
-            "AND ( CAST(:nascimento AS date) IS NULL OR c.cliNascimento = CAST(:nascimento AS date) ) " +
+            "AND ( CAST(:nascimento AS DATE) IS NULL OR c.cliNascimento = :nascimento ) " +
             "AND c.cliStatus = 'ativo'")
     List<Clientes> findClientes(@Param("nome") String nome,
                                 @Param("genero") String genero,
@@ -29,6 +29,7 @@ public interface ClienteRepository extends JpaRepository<Clientes, Integer> {
                                 @Param("telefone") String telefone,
                                 @Param("idade") Integer idade,
                                 @Param("nascimento") LocalDate nascimento);
+
 
     Clientes findTopByOrderByCliIdDesc();
 }
