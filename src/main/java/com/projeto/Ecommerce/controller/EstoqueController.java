@@ -26,7 +26,7 @@ public class EstoqueController {
         return estoqueService.buscarPorId(id);
     }
 
-    @PostMapping("/estoque/put")
+    @PostMapping("/estoque/post")
     public ResponseEntity<EstoqueDTO> adicionar(@RequestBody EstoqueCreateDTO estoqueCreateDTO) {
         EstoqueDTO novo = estoqueService.adicionar(estoqueCreateDTO);
         return new ResponseEntity<>(novo, HttpStatus.CREATED);
