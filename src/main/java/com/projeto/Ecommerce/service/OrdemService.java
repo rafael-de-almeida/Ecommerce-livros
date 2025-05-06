@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -118,6 +119,10 @@ public class OrdemService {
             return dto;
         }).toList();
     }
+    public Optional<Ordem> buscarOrdemPorId(Long idOrdem) {
+        return ordemRepository.findById(idOrdem); // Busca a ordem pelo ID
+    }
+
     @Transactional
     public void solicitarTroca(TrocaRequestDTO dto) {
         if (dto.getLivrosParaTroca() == null || dto.getLivrosParaTroca().isEmpty()) {
@@ -148,7 +153,7 @@ public class OrdemService {
         novaOrdem.setData(LocalDate.now());
         novaOrdem.setStatus("TROCA SOLICITADA");
         novaOrdem.setPrecoTotal(BigDecimal.ZERO);
-        novaOrdem = ordemRepository.save(novaOrdem);
+        novaOrdem = ordemRepository.save(novaOrdem);  // Salve a nova ordem primeiro
 
         BigDecimal total = BigDecimal.ZERO;
 
@@ -179,14 +184,19 @@ public class OrdemService {
                 olOriginal.setQuantidade(olOriginal.getQuantidade() - quantidadeTroca);
                 ordemLivroRepository.save(olOriginal);
             }
-
         }
 
         novaOrdem.setPrecoTotal(total);
-        ordemRepository.save(novaOrdem);
+        novaOrdem = ordemRepository.save(novaOrdem); // Re-salvando a nova ordem para garantir a atualização do preço total
 
-        // Atualizar lista da ordem original após possíveis deleções
+        // Atualizar a ordem original após possíveis deleções
         ordemOriginal.getLivros().removeIf(ol -> ol.getQuantidade() == 0);
+
+        // Apagar pagamentos associados à ordem original
+        List<Pagamento> pagamentos = pagamentoRepository.findByOrdem_Id(ordemOriginal.getId());
+        if (pagamentos != null && !pagamentos.isEmpty()) {
+            pagamentoRepository.deleteAll(pagamentos);  // Apaga os pagamentos relacionados à ordem
+        }
 
         if (ordemOriginal.getLivros().isEmpty()) {
             ordemRepository.delete(ordemOriginal);  // Todos os livros foram trocados, então apaga a ordem
@@ -194,17 +204,54 @@ public class OrdemService {
             ordemRepository.save(ordemOriginal);  // Ainda há livros na ordem original
         }
 
+        // Não criamos mais o cupom aqui - só quando a troca for autorizada
+    }
 
-        //ordemRepository.delete(ordemOriginal);
-        //Criação do cupom de troca
+    /*
+     * Método para atualizar o status de uma ordem de troca
+     * @param ordemId ID da ordem de troca
+     * @param novoStatus novo status a ser aplicado
+     */
+    @Transactional
+    public void atualizarStatusTroca(Long ordemId, String novoStatus) {
+        Ordem ordem = ordemRepository.findById(ordemId)
+                .orElseThrow(() -> new RuntimeException("Ordem não encontrada"));
+
+        String statusAnterior = ordem.getStatus();
+        ordem.setStatus(novoStatus);
+        ordemRepository.save(ordem);
+
+        // Se o status foi alterado para "TROCA AUTORIZADA", criamos o cupom
+        if ("TROCA AUTORIZADA".equals(novoStatus) && !"TROCA AUTORIZADA".equals(statusAnterior)) {
+            criarCupomParaTroca(ordem);
+        }
+    }
+
+    /**
+     * Método privado que cria um cupom para uma ordem de troca autorizada
+     * @param ordemTroca a ordem de troca que foi autorizada
+     */
+    private void criarCupomParaTroca(Ordem ordemTroca) {
+        // Verificamos se é realmente uma ordem de troca
+        if (ordemTroca == null || !ordemTroca.getStatus().equals("TROCA AUTORIZADA")) {
+            return; // Não é uma troca autorizada
+        }
+
+        // Verifica se já existe cupom para esta troca
+        boolean cupomExiste = cupomRepository.existsByOrigemTroca_Id(ordemTroca.getId());
+        if (cupomExiste) {
+            return; // Evita duplicação de cupons
+        }
+
+        // Criação do cupom de troca
         Cupom cupom = new Cupom();
-        cupom.setCodigo("TROCA-" + novaOrdem.getId() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
-        cupom.setValor(total); // ou `novaOrdem.getPrecoTotal()` se preferir
+        cupom.setCodigo("TROCA-" + ordemTroca.getId() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
+        cupom.setValor(ordemTroca.getPrecoTotal());
         cupom.setTipo(Cupom.TipoDesconto.TROCA);
         cupom.setTroca(true);
         cupom.setValidade(LocalDate.now().plusMonths(1));
-        cupom.setCliente(ordemOriginal.getCliente());
-        cupom.setOrigemTroca(ordemOriginal);
+        cupom.setCliente(ordemTroca.getCliente());
+        cupom.setOrigemTroca(ordemTroca);
 
         cupomRepository.save(cupom);
     }

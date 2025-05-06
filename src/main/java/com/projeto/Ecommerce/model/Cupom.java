@@ -38,7 +38,7 @@ public class Cupom {
     @JoinColumn(name = "cliente_id")
     private Clientes cliente; // só preenchido se for um cupom de troca
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "origem_troca_ord_id")
     private Ordem origemTroca; // opcional, usado apenas em cupom de troca
 

@@ -1,6 +1,7 @@
 package com.projeto.Ecommerce.repository;
 
 import com.projeto.Ecommerce.model.Cupom;
+import com.projeto.Ecommerce.model.Ordem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,7 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface CupomRepository extends JpaRepository<Cupom, Long> {
-    Optional<Cupom> findByCodigo(String codigo);
+    Optional<Cupom> findByCodigoAndCliente_CliId(String codigo, Integer cliente_cliId);
 
-    List<Cupom> findByCliente_CliId(Integer id);
+    boolean existsByOrigemTroca_Id(Long id);
+
+    Optional<Cupom> findByOrigemTroca(Ordem ordem);
 }

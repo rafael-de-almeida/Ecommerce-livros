@@ -14,6 +14,7 @@ public class LivroResumoDTO {
     private Integer clienteId;
     private Long id;
     private LocalDate data;
+    private Long livroId;
     private String titulo;
     private Integer quantidade;
     private BigDecimal preco;
