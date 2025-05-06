@@ -51,6 +51,7 @@ public class OrdemController {
         }
     }
 
+
     @GetMapping("/ordens/resumo")
     public List<OrdemResumoDTO> buscarOrdens(
             @RequestParam(required = false) String nomeCliente,

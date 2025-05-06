@@ -39,9 +39,15 @@ public class EstoqueController {
         return estoqueService.entradaEstoque(id, quantidade);
     }
 
-    @PatchMapping("/estoque/saida/{id}")
-    public EstoqueDTO saidaEstoque(@PathVariable Long id, @RequestParam int quantidade) {
-        return estoqueService.saidaEstoque(id, quantidade);
+    @PatchMapping("/estoque/saida-livro/{livroId}")
+    public void saidaEstoquePorLivro(@PathVariable Long livroId, @RequestParam int quantidade) {
+        estoqueService.saidaEstoque(livroId, quantidade);
+    }
 
+
+    @GetMapping("/quantidade-por-livro")
+    public ResponseEntity<List<EstoqueDTO>> totalQuantidadePorLivro() {
+        List<EstoqueDTO> listaEstoque = estoqueService.totalQuantidadePorLivro();
+        return ResponseEntity.ok(listaEstoque);
     }
 }

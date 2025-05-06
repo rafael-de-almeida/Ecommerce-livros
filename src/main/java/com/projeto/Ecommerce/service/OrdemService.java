@@ -25,6 +25,8 @@ public class OrdemService {
     private final PagamentoRepository pagamentoRepository;
     private final CartaoRepository cartaoRepository;
     private final CupomRepository cupomRepository;
+    private final EstoqueRepository estoqueRepository;
+    private final EstoqueService estoqueService;
 
     public OrdemService(
             OrdemRepository ordemRepository,
@@ -34,7 +36,9 @@ public class OrdemService {
             OrdemLivroRepository ordemLivroRepository,
             PagamentoRepository pagamentoRepository,
             CartaoRepository cartaoRepository,
-            CupomRepository cupomRepository
+            CupomRepository cupomRepository,
+            EstoqueRepository estoqueRepository,
+            EstoqueService estoqueService
     ) {
         this.ordemRepository = ordemRepository;
         this.clienteRepository = clienteRepository;
@@ -44,6 +48,8 @@ public class OrdemService {
         this.pagamentoRepository = pagamentoRepository;
         this.cartaoRepository = cartaoRepository;
         this.cupomRepository = cupomRepository;
+        this.estoqueRepository = estoqueRepository;
+        this.estoqueService = estoqueService;
     }
 
     public void criarOrdem(OrdemRequestDTO dto) {
@@ -69,6 +75,16 @@ public class OrdemService {
             Livros livro = livroRepository.findById(livroDTO.getLivroId())
                     .orElseThrow(() -> new RuntimeException("Livro não encontrado"));
 
+            // Verificar se há estoque suficiente
+            int totalEstoque = estoqueRepository.totalEstoquePorLivro(livro.getLivId());
+            if (totalEstoque < livroDTO.getQuantidade()) {
+                throw new RuntimeException("Estoque insuficiente para o livro: " + livro.getLivTitulo());
+            }
+
+            // Dar baixa no estoque
+            estoqueService.saidaEstoque(livro.getLivId(), livroDTO.getQuantidade());
+
+            // Criar o item na ordem
             OrdemLivro ordemLivro = new OrdemLivro();
             ordemLivro.setOrdem(ordem);
             ordemLivro.setLivro(livro);

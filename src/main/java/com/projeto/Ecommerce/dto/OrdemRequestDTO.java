@@ -19,4 +19,5 @@ public class OrdemRequestDTO {
     private Integer enderecoId;
     private List<OrdemLivroDTO> livros;
     private List<PagamentoDTO> pagamentos;
+    private String codigoCupom;
 }

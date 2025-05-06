@@ -9,6 +9,7 @@ import com.projeto.Ecommerce.repository.LivroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -89,13 +90,46 @@ public class EstoqueService {
     }
 
 
-    public EstoqueDTO saidaEstoque(Long id, int quantidade) {
-        Estoque estoque = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item não encontrado"));
-        if (estoque.getQuantidade() < quantidade) {
-            throw new RuntimeException("Estoque insuficiente");
+    public void saidaEstoque(Long livroId, int quantidadeNecessaria) {
+        List<Estoque> estoques = repository.findByLivro_LivIdOrderByIdAsc(livroId);
+
+        int restante = quantidadeNecessaria;
+
+        for (Estoque estoque : estoques) {
+            if (restante <= 0) break;
+
+            int disponivel = estoque.getQuantidade();
+            int reduzir = Math.min(disponivel, restante);
+
+            estoque.setQuantidade(disponivel - reduzir);
+            repository.save(estoque);
+
+            restante -= reduzir;
         }
-        estoque.setQuantidade(estoque.getQuantidade() - quantidade);
-        return toDTO(repository.save(estoque));
+
+        if (restante > 0) {
+            throw new RuntimeException("Estoque insuficiente para o livro " + livroId);
+        }
     }
+
+
+    public List<EstoqueDTO> totalQuantidadePorLivro() {
+        List<Object[]> resultados = repository.totalQuantidadePorLivro();
+
+        List<EstoqueDTO> estoqueDTOList = new ArrayList<>();
+
+        for (Object[] resultado : resultados) {
+            Long livroId = (Long) resultado[0];  // ID do livro
+            Integer quantidadeTotal = (Integer) resultado[1];  // Quantidade total, agora já retornada como Integer
+
+            EstoqueDTO dto = new EstoqueDTO();
+            dto.setIdLivro(livroId);
+            dto.setQuantidade(quantidadeTotal);  // Usando Integer diretamente
+
+            estoqueDTOList.add(dto);
+        }
+
+        return estoqueDTOList;
+    }
+
 }
