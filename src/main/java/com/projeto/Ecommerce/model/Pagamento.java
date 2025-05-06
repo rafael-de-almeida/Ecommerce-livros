@@ -2,6 +2,8 @@ package com.projeto.Ecommerce.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "pagamento")
@@ -22,6 +24,7 @@ public class Pagamento {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ord_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Ordem ordem;
 
     @ManyToOne(fetch = FetchType.LAZY)

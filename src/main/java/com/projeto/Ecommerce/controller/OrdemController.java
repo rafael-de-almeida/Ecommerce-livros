@@ -66,17 +66,29 @@ public class OrdemController {
     }
 
 
-    @PutMapping("/ordens/{id}/status")
-    public ResponseEntity<Void> alterarStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    @PutMapping("ordens/{id}/status")
+    public ResponseEntity<?> atualizarStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String novoStatus = body.get("status");
 
-        Ordem ordem = ordemRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem não encontrada"));
+        if (novoStatus == null || novoStatus.isEmpty()) {
+            return ResponseEntity.badRequest().body("Status não fornecido");
+        }
 
-        ordem.setStatus(novoStatus);
-        ordemRepository.save(ordem);
+        try {
+            // Verificamos se a ordem existe antes de prosseguir
+            Ordem ordem = ordemRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem não encontrada"));
 
-        return ResponseEntity.ok().build();
+            // Utilizamos o serviço existente para atualizar o status
+            ordemService.atualizarStatusTroca(id, novoStatus);
+
+            return ResponseEntity.ok("Status atualizado com sucesso");
+        } catch (ResponseStatusException e) {
+            // Repassamos exceções de status HTTP (como NOT_FOUND)
+            throw e;
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao atualizar status: " + e.getMessage());
+        }
     }
     @PatchMapping("/clientes/pedido/troca")
     public ResponseEntity<String> solicitarTroca(@RequestBody TrocaRequestDTO trocaRequestDTO) {

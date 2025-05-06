@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface OrdemLivroRepository extends JpaRepository<OrdemLivro, Long> {
 
-    @Query("SELECT new com.projeto.Ecommerce.dto.LivroResumoDTO(c.cliId, o.id, o.data, l.livTitulo, ol.quantidade, ol.preco, o.status, o.precoTotal) " +
+    @Query("SELECT new com.projeto.Ecommerce.dto.LivroResumoDTO(c.cliId, o.id, o.data, l.livId ,l.livTitulo, ol.quantidade, ol.preco, o.status, o.precoTotal) " +
             "FROM OrdemLivro ol " +
             "JOIN ol.livro l " +
             "JOIN ol.ordem o " +
