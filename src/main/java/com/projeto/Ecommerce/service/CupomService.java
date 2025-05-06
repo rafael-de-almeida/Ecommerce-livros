@@ -27,7 +27,7 @@ public class CupomService {
     public Map<String, Object> validarCupom(String codigo, Integer clienteId) {
         Map<String, Object> resultado = new HashMap<>();
 
-        Optional<Cupom> cupomOpt = cupomRepository.findByCodigoAndCliente_CliId(codigo, clienteId);
+        Optional<Cupom> cupomOpt = cupomRepository.findCupomValidoParaCliente(codigo, clienteId);
 
         if (cupomOpt.isEmpty()) {
             resultado.put("valido", false);

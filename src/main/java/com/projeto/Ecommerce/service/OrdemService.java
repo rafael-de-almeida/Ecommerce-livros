@@ -122,7 +122,6 @@ public class OrdemService {
     public Optional<Ordem> buscarOrdemPorId(Long idOrdem) {
         return ordemRepository.findById(idOrdem); // Busca a ordem pelo ID
     }
-
     @Transactional
     public void solicitarTroca(TrocaRequestDTO dto) {
         if (dto.getLivrosParaTroca() == null || dto.getLivrosParaTroca().isEmpty()) {
