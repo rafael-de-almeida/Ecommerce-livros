@@ -98,27 +98,34 @@ public class VendaTest {
 
         System.out.println("[INFO] Endereço selecionado com sucesso.");
 
-// Esperar que o dropdown do cartão esteja visível e clicável
-        WebElement cartaoDropdown = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.id("cartao1"))
-        );
-// Rolando até o dropdown, se necessário
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", cartaoDropdown);
-// Esperar que o dropdown seja clicável
-        cartaoDropdown = wait.until(
-                ExpectedConditions.elementToBeClickable(cartaoDropdown)
-        );
-// Usando o objeto Select para interagir com o dropdown do cartão
-        Select selectCartao = new Select(cartaoDropdown);
-        selectCartao.selectByIndex(1); // seleciona a segunda opção
-        System.out.println("[INFO] Cartão selecionado com sucesso.");
-        WebElement botaoFinalizarCompra2 = wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        By.cssSelector(".btn.btn-success.w-100")
-                )
-        );
 
-        System.out.println("[INFO] Compra finalizada com sucesso e validada.");
+        WebElement cartaoDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.id("cartao1")));
+        Select selectCartao = new Select(cartaoDropdown);
+        selectCartao.selectByIndex(1);
+
+        System.out.println("[INFO] Cartão selecionado com sucesso.");
+
+
+        // Achar o grupo mais recente de cartão
+        List<WebElement> grupos = driver.findElements(By.cssSelector("div.d-flex.align-items-center.mb-2.gap-2"));
+        WebElement grupoMaisRecente = grupos.get(grupos.size() - 1);
+
+// Dentro do grupo, achar o input de valor
+        WebElement inputValor = grupoMaisRecente.findElement(By.cssSelector("input[type='number']"));
+
+
+        inputValor.sendKeys("105.90");
+        System.out.println("[INFO] Valor preenchido no cartão.");
+
+
+        WebElement checarBotaoFinalizarCompra = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("finalizarCompraBtn")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", checarBotaoFinalizarCompra);
+        Thread.sleep(500);  // Pequena pausa para garantir visibilidade
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checarBotaoFinalizarCompra);
+        assert checarBotaoFinalizarCompra.getText().equals("Finalizar Compra") : "A botão de finalizar compra não foi localizado.";
+
+        System.out.println("[INFO] Compra finalizada.");
+
     }
 
 }
