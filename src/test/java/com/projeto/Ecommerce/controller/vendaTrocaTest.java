@@ -624,10 +624,112 @@ public class vendaTrocaTest {
         System.out.println("[INFO] Compra finalizada.");
 
     }
-
-
     @Test
     @Order(7)
+    void TestDoisCuponsPromocionais() throws InterruptedException {
+        navigateToPage("http://127.0.0.1:5500/TelaInicial.html?id=2");
+
+        // Localize o botão "Comprar Agora" pelo seu identificador (exemplo usando className)
+        WebElement buyNowButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-comprar-agora")));
+
+        // Realize o clique no botão
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", buyNowButton);  // Garante que o botão esteja visível
+        Thread.sleep(500);  // Espera um tempo para garantir que o botão foi encontrado
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", buyNowButton);  // Clica no botão
+
+        System.out.println("[INFO] Cliquei no botão 'Comprar Agora' com sucesso.");
+
+        // Aguardar a navegação para a página de finalização de compra
+        WebElement checarTituloCarrinho = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("titulo-pagina-carrinho")));
+        assert checarTituloCarrinho.getText().equals("Carrinho de Compras") : "A página de carrinho não foi carregada corretamente.";
+
+
+
+        WebElement botaoFinalizarCompra = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector(".btn.btn-success.w-100.mt-2")
+                )
+        );
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", botaoFinalizarCompra);
+        Thread.sleep(500);  // Pequena pausa para garantir visibilidade
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", botaoFinalizarCompra);
+
+
+        // Aguardar a navegação para a página de finalização de compra
+        WebElement checarTituloPaginaFinalizarCompra = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("titulo-pagina-finalizar-compra")));
+        assert checarTituloPaginaFinalizarCompra.getText().equals("Finalizar Compra") : "A página de finalizar compra não foi carregada corretamente.";
+
+        // Esperar o dropdown ficar visível
+        WebElement enderecoDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.id("endereco-selecionado")));
+
+        // Criar o Select e selecionar a terceira opção (índice 2, pois começa em 0)
+        Select selectEndereco = new Select(enderecoDropdown);
+        selectEndereco.selectByIndex(2); // seleciona a terceira opção
+
+        System.out.println("[INFO] Endereço selecionado com sucesso.");
+
+
+        WebElement cartaoDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.id("cartao1")));
+        Select selectCartao = new Select(cartaoDropdown);
+        selectCartao.selectByIndex(1);
+
+        System.out.println("[INFO] Cartão selecionado com sucesso.");
+
+
+        // Achar o grupo mais recente de cartão
+        List<WebElement> grupos = driver.findElements(By.cssSelector("div.d-flex.align-items-center.mb-2.gap-2"));
+        WebElement grupoMaisRecente = grupos.get(grupos.size() - 1);
+
+        // Dentro do grupo, achar o input de valor
+        WebElement inputValor = grupoMaisRecente.findElement(By.cssSelector("input[type='number']"));
+
+
+        inputValor.sendKeys("97.31");
+        System.out.println("[INFO] Valor preenchido no cartão.");
+
+
+        WebElement inputCupom = wait.until(ExpectedConditions.elementToBeClickable(By.id("input-cupom")));
+        inputCupom.sendKeys("PROMO10"); // substitua pelo código real do cupom
+
+        WebElement aplicarCupomBtn = wait.until(ExpectedConditions.elementToBeClickable(By.id("btn-aplicar-cupom")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", aplicarCupomBtn);
+        System.out.println("[INFO] Cupom aplicado.");
+        Thread.sleep(1000);
+
+        WebElement inputCupom2 = wait.until(ExpectedConditions.elementToBeClickable(By.id("input-cupom")));
+        inputCupom2.clear();
+        inputCupom2.sendKeys("PROMO15"); // substitua pelo código real do cupom
+
+        WebElement aplicarCupomBtn2 = wait.until(ExpectedConditions.elementToBeClickable(By.id("btn-aplicar-cupom")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", aplicarCupomBtn2);
+        System.out.println("[INFO] Cupom aplicado.");
+        Thread.sleep(1000);
+
+        WebElement checarBotaoFinalizarCompra = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("finalizarCompraBtn")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", checarBotaoFinalizarCompra);
+        Thread.sleep(500);  // Pequena pausa para garantir visibilidade
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checarBotaoFinalizarCompra);
+        assert checarBotaoFinalizarCompra.getText().equals("Finalizar Compra") : "A botão de finalizar compra não foi localizado.";
+
+        System.out.println("[INFO] Compra finalizada.");
+
+        try {
+            WebElement mensagemErroCupomPromocional = driver.findElement(
+                    By.xpath("//*[contains(text(), 'Você só pode aplicar um cupom promocional por compra')]")
+            );
+            if (mensagemErroCupomPromocional.isDisplayed()) {
+                throw new AssertionError("Erro: Você só pode aplicar um cupom promocional por compra");
+            }
+        } catch (NoSuchElementException e) {
+
+        }
+
+
+    }
+
+    @Test
+    @Order(8)
     void CupomJaResgatado() throws InterruptedException {
         navigateToPage("http://127.0.0.1:5500/TelaInicial.html?id=2");
 
@@ -716,6 +818,109 @@ public class vendaTrocaTest {
         }
 
     }
+
+    @Test
+    @Order(9)
+    void TestDoisCuposTroca() throws InterruptedException{
+        navigateToPage("http://127.0.0.1:5500/TelaInicial.html?id=2");
+
+        WebElement carrinhoButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-adicionar-carrinho")));
+        // Localize o botão "Comprar Agora" pelo seu identificador (exemplo usando className)
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", carrinhoButton);  // Garante que o botão esteja visível
+        Thread.sleep(500);  // Espera um tempo para garantir que o botão foi encontrado
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", carrinhoButton);  // Clica no botão
+
+        System.out.println("[INFO] Cliquei no botão 'Carrinho' com sucesso.");
+
+        WebElement buyNowButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-comprar-agora")));
+
+        // Realize o clique no botão
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", buyNowButton);  // Garante que o botão esteja visível
+        Thread.sleep(500);  // Espera um tempo para garantir que o botão foi encontrado
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", buyNowButton);  // Clica no botão
+
+        System.out.println("[INFO] Cliquei no botão 'Comprar Agora' com sucesso.");
+
+        // Aguardar a navegação para a página de finalização de compra
+        WebElement checarTituloCarrinho = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("titulo-pagina-carrinho")));
+        assert checarTituloCarrinho.getText().equals("Carrinho de Compras") : "A página de carrinho não foi carregada corretamente.";
+
+
+
+        WebElement botaoFinalizarCompra = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector(".btn.btn-success.w-100.mt-2")
+                )
+        );
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", botaoFinalizarCompra);
+        Thread.sleep(500);  // Pequena pausa para garantir visibilidade
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", botaoFinalizarCompra);
+
+
+        // Aguardar a navegação para a página de finalização de compra
+        WebElement checarTituloPaginaFinalizarCompra = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("titulo-pagina-finalizar-compra")));
+        assert checarTituloPaginaFinalizarCompra.getText().equals("Finalizar Compra") : "A página de finalizar compra não foi carregada corretamente.";
+
+        // Esperar o dropdown ficar visível
+        WebElement enderecoDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.id("endereco-selecionado")));
+
+        // Criar o Select e selecionar a terceira opção (índice 2, pois começa em 0)
+        Select selectEndereco = new Select(enderecoDropdown);
+        selectEndereco.selectByIndex(2); // seleciona a terceira opção
+
+        System.out.println("[INFO] Endereço selecionado com sucesso.");
+
+
+        WebElement cartaoDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.id("cartao1")));
+        Select selectCartao = new Select(cartaoDropdown);
+        selectCartao.selectByIndex(1);
+
+        System.out.println("[INFO] Cartão selecionado com sucesso.");
+
+
+        // Achar o grupo mais recente de cartão
+        List<WebElement> grupos = driver.findElements(By.cssSelector("div.d-flex.align-items-center.mb-2.gap-2"));
+        WebElement grupoMaisRecente = grupos.get(grupos.size() - 1);
+
+        // Dentro do grupo, achar o input de valor
+        WebElement inputValor = grupoMaisRecente.findElement(By.cssSelector("input[type='number']"));
+
+
+        inputValor.sendKeys("100.00");
+        System.out.println("[INFO] Valor preenchido no cartão.");
+
+
+        WebElement inputCupom = wait.until(ExpectedConditions.elementToBeClickable(By.id("input-cupom")));
+        inputCupom.sendKeys("TROCA-117-9E85B0"); // substitua pelo código real do cupom
+
+        WebElement aplicarCupomBtn = wait.until(ExpectedConditions.elementToBeClickable(By.id("btn-aplicar-cupom")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", aplicarCupomBtn);
+        System.out.println("[INFO] Cupom aplicado.");
+        Thread.sleep(1000);
+
+        WebElement inputCupom2 = wait.until(ExpectedConditions.elementToBeClickable(By.id("input-cupom")));
+        inputCupom2.clear();
+        inputCupom2.sendKeys("TROCA-118-C275DB"); // substitua pelo código real do cupom
+
+        WebElement aplicarCupomBtn2 = wait.until(ExpectedConditions.elementToBeClickable(By.id("btn-aplicar-cupom")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", aplicarCupomBtn2);
+        System.out.println("[INFO] Cupom aplicado.");
+        Thread.sleep(1000);
+
+        WebElement checarBotaoFinalizarCompra = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("finalizarCompraBtn")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", checarBotaoFinalizarCompra);
+        Thread.sleep(500);  // Pequena pausa para garantir visibilidade
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checarBotaoFinalizarCompra);
+        assert checarBotaoFinalizarCompra.getText().equals("Finalizar Compra") : "A botão de finalizar compra não foi localizado.";
+
+        System.out.println("[INFO] Compra finalizada.");
+
+
+
+    }
+
 
 }
 
