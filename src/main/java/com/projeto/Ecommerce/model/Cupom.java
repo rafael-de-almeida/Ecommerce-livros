@@ -31,7 +31,7 @@ public class Cupom {
     private LocalDate validade;
 
     private Integer usoMaximo = 1;
-
+    @Column(nullable = false)
     private Integer usado = 0;
 
     @ManyToOne

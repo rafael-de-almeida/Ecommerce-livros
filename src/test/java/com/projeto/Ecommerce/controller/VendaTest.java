@@ -63,7 +63,7 @@ public class VendaTest {
     void testFormSubmissionAndApiValidation() throws InterruptedException {
 
         // Navegar para a página de compra
-        navigateToPage("http://127.0.0.1:5500/TelaInicial.html?id=2");
+        navigateToPage("http://127.0.0.1:5500/frontend-ecommerce-livro/TelaInicial.html?id=2");
 
         // Localize o botão "Comprar Agora" pelo seu identificador (exemplo usando className)
         WebElement buyNowButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".btn-comprar-agora")));

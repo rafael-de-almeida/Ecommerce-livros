@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -79,14 +80,16 @@ public class CupomController {
     @PostMapping("/finalizar-compra")
     public ResponseEntity<?> finalizarCompra(@RequestBody FinalizarCompraRequest request) {
         try {
-            // Lógica de finalização da compra
-            // Verifique se há um cupom a ser usado
-            if (request.getCupomId() != null) {
-                // Chama o método para incrementar o uso do cupom
-                cupomService.finalizarCompra(request.getCupomId());
+            // Verifica se há cupons a serem utilizados
+            List<Long> cuponsIds = request.getCuponsIds();
+            if (cuponsIds != null && !cuponsIds.isEmpty()) {
+                for (Long cupomId : cuponsIds) {
+                    System.out.println("Usando cupom ID: " + cupomId);
+                    cupomService.finalizarCompra(cupomId);
+                }
             }
 
-            // Adicione a lógica de finalização da compra aqui (atualizar a ordem, processar pagamento, etc.)
+            // Outras lógicas de finalização de compra (ex: atualizar ordem, pagamento, etc.)
 
             return ResponseEntity.ok(Map.of("sucesso", true, "mensagem", "Compra finalizada com sucesso"));
         } catch (Exception e) {
@@ -96,6 +99,7 @@ public class CupomController {
             ));
         }
     }
+
 
     @GetMapping("/buscar-por-origem-troca/{idOrdem}")
     public ResponseEntity<Cupom> buscarCupomPorOrigemTroca(@PathVariable Long idOrdem) {

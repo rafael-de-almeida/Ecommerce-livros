@@ -7,6 +7,8 @@ import com.projeto.Ecommerce.repository.CupomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -117,6 +119,7 @@ public class CupomService {
     }
 
     // Método para marcar o cupom como "usado" na finalização da compra
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void finalizarCompra(Long cupomId) {
         Optional<Cupom> cupomOpt = cupomRepository.findById(cupomId);
         if (cupomOpt.isPresent()) {
@@ -127,6 +130,7 @@ public class CupomService {
             throw new RuntimeException("Cupom não encontrado.");
         }
     }
+
     public Optional<Cupom> buscarCupomPorOrigemTroca(Ordem ordem) {
         return cupomRepository.findByOrigemTroca(ordem);
     }
