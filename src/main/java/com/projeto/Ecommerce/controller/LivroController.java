@@ -45,7 +45,7 @@ public class LivroController {
             return livroRepository.findAll();
         }
 
-        return livroRepository.findLivrosBy(autor, categoria, anoConvertido, titulo, editora, isbn, qtdpaginas, codbarras);
+        return livroRepository.buscarLivrosComFiltros(autor, categoria, anoConvertido, titulo, editora, isbn, qtdpaginas, codbarras);
     }
 
 

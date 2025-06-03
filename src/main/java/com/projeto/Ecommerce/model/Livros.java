@@ -1,10 +1,12 @@
 package com.projeto.Ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -61,9 +63,16 @@ public class Livros {
     @Column(name = "LIV_IMAGEM")
     private String livImagem;
 
-    @Column (name = "LIV_CATEGORIA")
-    private String livCategoria;
+    @JsonManagedReference
+    @ManyToMany
+    @JoinTable(
+            name = "livros_categorias",
+            joinColumns = @JoinColumn(name = "liv_id"),
+            inverseJoinColumns = @JoinColumn(name = "cat_id")
+    )
+    private Set<Categorias> categorias;
 
     @Column (name = "LIV_COD_BARRAS")
     private String liv_cod_barras;
+
 }

@@ -35,51 +35,17 @@ public class GeminiService {
         historicoPorUsuario.putIfAbsent(usuarioId, new ArrayList<>());
         List<String> historico = historicoPorUsuario.get(usuarioId);
 
-        // Detecta se o prompt é vago (exemplos simples)
-        boolean promptVago = prompt.matches("(?i).*\\b(qual é o seu gênero\\??|qual o gênero\\??|me fale mais dele|fale mais dele|qual é o gênero\\??)\\b.*");
-
-        String promptParaIA = prompt;
-
-        if (promptVago) {
-            String ultimoLivro = ultimoLivroPorUsuario.get(usuarioId);
-            if (ultimoLivro != null) {
-                // Adiciona contexto extra sem substituir o prompt original
-                promptParaIA = prompt + "\n(Considere o livro: " + ultimoLivro + ")";
-            }
-        }
-
-        // Buscar livros relacionados com promptParaIA
-        List<String> livrosRelacionados = livroService.encontrarLivrosRelacionados(promptParaIA);
-        if (livrosRelacionados.isEmpty()) {
-            String ultimoLivro = ultimoLivroPorUsuario.get(usuarioId);
-            if (ultimoLivro != null) {
-                livrosRelacionados = List.of(ultimoLivro);
-            } else {
-                livrosRelacionados = livroService.obterTitulos();
-            }
-        } else {
-            ultimoLivroPorUsuario.put(usuarioId, livrosRelacionados.get(0));
-        }
-
-        // Buscar autores relacionados
-        List<String> autoresRelacionados = livroService.encontrarAutoresRelacionados(promptParaIA);
-        if (autoresRelacionados.isEmpty()) {
-            autoresRelacionados = livroService.obterAutores();
-        }
-
-        // Monta a entrada do usuário com o promptParaIA
-        String entradaUsuario = "Usuário: " + promptParaIA;
-        if (!livrosRelacionados.isEmpty()) {
-            entradaUsuario += " (livros: " + String.join(", ", livrosRelacionados) + ")";
-        }
+        // Monta o histórico da conversa
+        String entradaUsuario = "Usuário: " + prompt;
         historico.add(entradaUsuario);
-
         String contextoCompleto = String.join("\n", historico);
 
-        // Recupera todos os livros para sinopses
+        // Busca todos os livros e autores
         List<Livros> todosLivros = livroService.obterTodosLivros();
+        List<String> livrosRelacionados = livroService.obterTitulos();
+        List<String> autoresRelacionados = livroService.obterAutores();
 
-        // Monta o contexto para enviar para a IA
+        // Monta o contexto completo para enviar à IA
         StringBuilder contexto = new StringBuilder();
         contexto.append("Você é um assistente virtual de uma livraria. ")
                 .append("Sua função é responder APENAS com base nos livros e autores listados a seguir. ")
@@ -87,33 +53,43 @@ public class GeminiService {
                 .append("Se o conteúdo solicitado não estiver na lista, diga que não foi encontrado.\n\n");
 
         if (!livrosRelacionados.isEmpty()) {
-            contexto.append("Livros encontrados:\n");
+            contexto.append("Livros disponíveis:\n");
             livrosRelacionados.forEach(t -> contexto.append("- ").append(t).append("\n"));
         }
 
         if (!autoresRelacionados.isEmpty()) {
-            contexto.append("\nAutores encontrados:\n");
+            contexto.append("\nAutores disponíveis:\n");
             autoresRelacionados.forEach(a -> contexto.append("- ").append(a).append("\n"));
         }
 
-        contexto.append("\nSinopses disponíveis:\n");
+        contexto.append("\nSinopses dos livros:\n");
         for (Livros livro : todosLivros) {
-            if (livrosRelacionados.contains(livro.getLivTitulo())) {
-                contexto.append("- ").append(livro.getLivTitulo()).append(": ")
-                        .append(livro.getLivSinopse() != null ? livro.getLivSinopse() : "Sinopse não disponível.")
-                        .append("\n");
-            }
+            contexto.append("- ").append(livro.getLivTitulo()).append(": ")
+                    .append(livro.getLivSinopse() != null ? livro.getLivSinopse() : "Sinopse não disponível.")
+                    .append("\n");
         }
 
-        // Debug
-        System.out.println(">>> Prompt recebido: " + prompt);
-        System.out.println(">>> Prompt para IA: " + promptParaIA);
-        System.out.println(">>> Livros relacionados: " + livrosRelacionados);
-        System.out.println(">>> Autores relacionados: " + autoresRelacionados);
-        System.out.println(">>> Texto final enviado à IA:\n" + contexto);
+        contexto.append("\nGêneros dos livros:\n");
+        for (Livros livro : todosLivros) {
+            contexto.append("- ").append(livro.getLivTitulo()).append(": ");
+            if (livro.getCategorias() != null && !livro.getCategorias().isEmpty()) {
+                List<String> nomes = livro.getCategorias().stream()
+                        .map(c -> c.getNome())
+                        .toList();
+                contexto.append(String.join(", ", nomes));
+            } else {
+                contexto.append("Gênero não disponível");
+            }
+            contexto.append("\n");
+        }
 
         contexto.append("\n\nHistórico da conversa:\n").append(contextoCompleto);
 
+        // Debug
+        System.out.println(">>> Prompt recebido: " + prompt);
+        System.out.println(">>> Texto final enviado à IA:\n" + contexto);
+
+        // Chamada à API do Gemini
         GenerateContentResponse response = client.models.generateContent(
                 "gemini-2.0-flash",
                 contexto.toString(),
@@ -125,4 +101,5 @@ public class GeminiService {
 
         return resposta;
     }
+
 }
