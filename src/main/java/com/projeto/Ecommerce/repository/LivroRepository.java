@@ -32,4 +32,12 @@ public interface LivroRepository extends JpaRepository<Livros, Integer> {
                                   @Param("qtdpaginas") Integer qtdpaginas,
                                   @Param("codbarras") String codbarras);
 
+        @Query("SELECT l.livTitulo FROM Livros l")
+        List<String> findTitulos();
+
+        @Query("SELECT l.livAutor FROM Livros l")
+        List<String> findAutores();
+
+        @Query("SELECT l FROM Livros l")
+        List<Livros> findAllLivros();
 }

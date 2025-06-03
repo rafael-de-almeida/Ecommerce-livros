@@ -2,6 +2,7 @@ package com.projeto.Ecommerce.controller;
 
 import com.projeto.Ecommerce.dto.CupomAplicadoDTO;
 import com.projeto.Ecommerce.dto.CupomRequestDTO;
+import com.projeto.Ecommerce.dto.CupomTrocaRequestDTO;
 import com.projeto.Ecommerce.dto.FinalizarCompraRequest;
 import com.projeto.Ecommerce.model.Cupom;
 import com.projeto.Ecommerce.model.Ordem;
@@ -112,6 +113,27 @@ public class CupomController {
         }
         return ResponseEntity.notFound().build();
     }
+    @PostMapping("/criar-troca")
+    public ResponseEntity<?> criarCupomTroca(@RequestBody CupomTrocaRequestDTO requestDTO) {
+        try {
+            // Cria o cupom de troca no service
+            Cupom cupomCriado = cupomService.criarCupomTroca(
+                    requestDTO.getClienteId(),
+                    requestDTO.getValorEmCentavos(),
+                    requestDTO.getIdOrdemOrigem()
+            );
 
+            return ResponseEntity.ok(Map.of(
+                    "sucesso", true,
+                    "mensagem", "Cupom de troca gerado com sucesso.",
+                    "cupom", cupomCriado
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "sucesso", false,
+                    "mensagem", "Erro ao gerar cupom de troca: " + e.getMessage()
+            ));
+        }
+    }
 
 }

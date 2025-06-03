@@ -1,9 +1,12 @@
 package com.projeto.Ecommerce.service;
 
 import com.projeto.Ecommerce.dto.CupomAplicadoDTO;
+import com.projeto.Ecommerce.model.Clientes;
 import com.projeto.Ecommerce.model.Cupom;
 import com.projeto.Ecommerce.model.Ordem;
+import com.projeto.Ecommerce.repository.ClienteRepository;
 import com.projeto.Ecommerce.repository.CupomRepository;
+import com.projeto.Ecommerce.repository.OrdemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,17 +15,19 @@ import org.springframework.transaction.annotation.Propagation;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+
+import static com.projeto.Ecommerce.model.Cupom.TipoDesconto.TROCA;
 
 @Service
 public class CupomService {
 
     @Autowired
     private CupomRepository cupomRepository;
-
+    @Autowired
+    private ClienteRepository clienteRepository;
+    @Autowired
+    private OrdemRepository ordemRepository;
     /**
      * Valida se um cupom existe e pode ser usado pelo cliente
      */
@@ -92,7 +97,7 @@ public class CupomService {
         // Calcula o desconto de acordo com o tipo do cupom
         if (tipo == Cupom.TipoDesconto.PROMOCIONAL) {
             valorDesconto = BigDecimal.valueOf(valorCompra).multiply(valor).divide(BigDecimal.valueOf(100));
-        } else if (tipo == Cupom.TipoDesconto.TROCA) {
+        } else if (tipo == TROCA) {
             valorDesconto = valor;
         }
 
@@ -133,6 +138,25 @@ public class CupomService {
 
     public Optional<Cupom> buscarCupomPorOrigemTroca(Ordem ordem) {
         return cupomRepository.findByOrigemTroca(ordem);
+    }
+    public Cupom criarCupomTroca(Integer clienteId, BigDecimal valorEmCentavos, Long idOrdemOrigem) {
+        Clientes cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        Cupom cupom = new Cupom();
+        cupom.setCodigo("TROCA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        cupom.setTipo(TROCA);
+        cupom.setValor(valorEmCentavos); // ou salve em centavos se preferir
+        cupom.setTroca(true);
+        cupom.setCliente(cliente);
+
+        // Associa à ordem de origem, se necessário
+        if (idOrdemOrigem != null) {
+            Ordem ordem = ordemRepository.findById(idOrdemOrigem)
+                    .orElseThrow(() -> new RuntimeException("Ordem não encontrada"));
+            cupom.setOrigemTroca(ordem);
+        }
+
+        return cupomRepository.save(cupom);
     }
 
 }
