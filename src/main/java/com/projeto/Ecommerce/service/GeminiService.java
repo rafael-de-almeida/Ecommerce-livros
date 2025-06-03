@@ -50,7 +50,8 @@ public class GeminiService {
         contexto.append("Você é um assistente virtual de uma livraria. ")
                 .append("Sua função é responder APENAS com base nos livros e autores listados a seguir. ")
                 .append("NÃO invente livros, autores ou informações que não estejam explícitas. ")
-                .append("Se o conteúdo solicitado não estiver na lista, diga que não foi encontrado.\n\n");
+                .append("Se o conteúdo solicitado não estiver na lista, diga: 'Infelizmente, no momento, não possuímos esse livro em nosso catálogo. Estamos sempre atualizando nosso acervo! Quer uma outra recomendação de livro?'\n\n");
+
 
         if (!livrosRelacionados.isEmpty()) {
             contexto.append("Livros disponíveis:\n");
