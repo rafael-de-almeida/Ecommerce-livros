@@ -2,6 +2,7 @@ package com.projeto.Ecommerce.service;
 
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
+import com.projeto.Ecommerce.dto.LivroResumoDTO;
 import com.projeto.Ecommerce.model.Livros;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,11 @@ public class GeminiService {
     @Autowired
     private LivroService livroService;
 
+    @Autowired
+    private OrdemService ordemService;
+
+
+
     public GeminiService(@Value("${google.api.key}") String apiKey) {
         this.client = Client.builder()
                 .apiKey(apiKey)
@@ -47,7 +53,7 @@ public class GeminiService {
 
         // Monta o contexto completo para enviar à IA
         StringBuilder contexto = new StringBuilder();
-        contexto.append("Você é um assistente virtual de uma livraria. ")
+        contexto.append("Você é um assistente virtual de uma livraria, você só pode recomendar livros, e não pode realizar nenhuma compra. ")
                 .append("Sua função é responder APENAS com base nos livros e autores listados a seguir. ")
                 .append("NÃO invente livros, autores ou informações que não estejam explícitas. ")
                 .append("Se o conteúdo solicitado não estiver na lista, diga que não foi encontrado.\n\n");
@@ -85,6 +91,23 @@ public class GeminiService {
 
         contexto.append("\n\nHistórico da conversa:\n").append(contextoCompleto);
 
+        int numero = 1;
+        try {
+            Long clienteId = Long.parseLong(usuarioId);
+            List<LivroResumoDTO> historicoCompras = ordemService.listarLivrosDaOrdem(clienteId);
+            if (!historicoCompras.isEmpty()) {
+                contexto.append("\nHistórico de compras do cliente:\n");
+                for (LivroResumoDTO livro : historicoCompras) {
+                    contexto.append("pedido numero:").append(numero).append(" ").append(livro.getTitulo()).append(" ");
+                    numero++;
+                }
+            }
+        } catch (NumberFormatException e) {
+            contexto.append("\n(Não foi possível interpretar o ID do cliente para obter histórico)\n");
+        }
+
+        contexto.append("\n\nHistórico da conversa:\n").append(contextoCompleto);
+
         // Debug
         System.out.println(">>> Prompt recebido: " + prompt);
         System.out.println(">>> Texto final enviado à IA:\n" + contexto);
@@ -95,6 +118,7 @@ public class GeminiService {
                 contexto.toString(),
                 null
         );
+
 
         String resposta = response.text();
         historico.add("IA: " + resposta);
