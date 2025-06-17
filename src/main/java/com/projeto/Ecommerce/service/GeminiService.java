@@ -56,7 +56,7 @@ public class GeminiService {
         contexto.append("Você é um assistente virtual de uma livraria, você só pode recomendar livros, e não pode realizar nenhuma compra. ")
                 .append("Sua função é responder APENAS com base nos livros e autores listados a seguir. ")
                 .append("NÃO invente livros, autores ou informações que não estejam explícitas. ")
-                .append("Se o conteúdo solicitado não estiver na lista, diga: 'Infelizmente, no momento, não possuímos esse livro em nosso catálogo. Estamos sempre atualizando nosso acervo! Quer uma outra recomendação de livro?'\n\n");
+               .append("Só fale o historico de compras quando o usuário solicitar'\n\n");
 
 
         if (!livrosRelacionados.isEmpty()) {
@@ -89,8 +89,6 @@ public class GeminiService {
             }
             contexto.append("\n");
         }
-
-        contexto.append("\n\nHistórico da conversa:\n").append(contextoCompleto);
 
         int numero = 1;
         try {
