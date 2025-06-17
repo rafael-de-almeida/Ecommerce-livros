@@ -1,24 +1,47 @@
 package com.projeto.Ecommerce.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class LivroResumoDTO {
     private Integer clienteId;
-    private Long id;
-    private LocalDate data;
+    private Long ordemId;
+    private LocalDate data;      // agora LocalDate, com conversão no construtor
     private Long livroId;
     private String titulo;
     private Integer quantidade;
     private BigDecimal preco;
     private String status;
     private BigDecimal precoTotal;
+    private List<String> categorias;  // pode ficar null se não usado na query
+
+    // Construtor usado na query JPQL — recebe Date e converte para LocalDate
+    public LivroResumoDTO(Integer clienteId, Long ordemId, Date data, Long livroId, String titulo,
+                          Integer quantidade, BigDecimal preco, String status, BigDecimal precoTotal) {
+        this.clienteId = clienteId;
+        this.ordemId = ordemId;
+        this.data = data != null ? data.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
+        this.livroId = livroId;
+        this.titulo = titulo;
+        this.quantidade = quantidade;
+        this.preco = preco;
+        this.status = status;
+        this.precoTotal = precoTotal;
+    }
+
+    // Construtor vazio para frameworks que precisem
+    public LivroResumoDTO() {
+    }
 }
+
+
+
 
