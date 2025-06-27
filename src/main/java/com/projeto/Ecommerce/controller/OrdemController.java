@@ -52,18 +52,20 @@ public class OrdemController {
     }
 
 
-    @GetMapping("/ordens/resumo")
-    public List<OrdemResumoDTO> buscarOrdens(
-            @RequestParam(required = false) String nomeCliente,
-            @RequestParam(required = false) String tituloLivro,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
-            @RequestParam(required = false) BigDecimal valorTotal,
-            @RequestParam(required = false) Long numeroPedido // ← Novo parâmetro
-    ) {
-        return ordemService.buscarOrdens(nomeCliente, tituloLivro, status, dataInicio, dataFim, valorTotal, numeroPedido);
-    }
+@GetMapping("/ordens/resumo")
+public List<OrdemResumoDTO> buscarOrdens(
+        @RequestParam(required = false) String nomeCliente,
+        @RequestParam(required = false) String tituloLivro,
+        @RequestParam(required = false) String categoria,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
+        @RequestParam(required = false) BigDecimal valorTotal,
+        @RequestParam(required = false) Long numeroPedido
+) {
+    return ordemService.buscarOrdens(nomeCliente, tituloLivro, categoria, status, dataInicio, dataFim, valorTotal, numeroPedido);
+}
+
 
 
     @PutMapping("ordens/{id}/status")

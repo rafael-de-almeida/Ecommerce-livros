@@ -22,6 +22,7 @@ public interface OrdemLivroRepository extends JpaRepository<OrdemLivro, Long> {
     List<LivroResumoDTO> findPedidosByClienteId(@Param("clienteId") Long clienteId);
 
 
+
     @Query("SELECT new com.projeto.Ecommerce.dto.OrdemLivroResumoDTO(ol.id, o.id, l.livId, l.livTitulo, ol.quantidade, ol.preco) " +
             "FROM OrdemLivro ol " +
             "JOIN ol.livro l " +

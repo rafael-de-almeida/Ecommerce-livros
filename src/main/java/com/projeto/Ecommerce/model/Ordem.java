@@ -10,6 +10,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -32,7 +33,8 @@ public class Ordem {
     private String status;
 
     @Column(name = "ord_data")
-    private LocalDate data;
+    @Temporal(TemporalType.DATE)
+    private Date data;
 
     @ManyToOne
     @JoinColumn(name = "cli_id")
