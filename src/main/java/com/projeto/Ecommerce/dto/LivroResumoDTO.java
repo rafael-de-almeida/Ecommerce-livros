@@ -24,11 +24,11 @@ public class LivroResumoDTO {
     private List<String> categorias;  // pode ficar null se não usado na query
 
     // Construtor usado na query JPQL — recebe Date e converte para LocalDate
-    public LivroResumoDTO(Integer clienteId, Long ordemId, Date data, Long livroId, String titulo,
+    public LivroResumoDTO(Integer clienteId, Long ordemId, LocalDate data, Long livroId, String titulo,
                           Integer quantidade, BigDecimal preco, String status, BigDecimal precoTotal) {
         this.clienteId = clienteId;
         this.ordemId = ordemId;
-        this.data = data != null ? data.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : null;
+        this.data = data;  // recebe LocalDate direto
         this.livroId = livroId;
         this.titulo = titulo;
         this.quantidade = quantidade;

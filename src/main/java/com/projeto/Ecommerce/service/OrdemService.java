@@ -67,12 +67,7 @@ public class OrdemService {
         ordem.setPrecoTotal(dto.getPrecoTotal());
         ordem.setStatus(dto.getStatus());
         LocalDate localDate = dto.getData();
-        if (localDate != null) {
-            Date date = (Date) Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-            ordem.setData(date);
-        } else {
-            ordem.setData(null);
-        }
+        ordem.setData(dto.getData());
         ordem.setCliente(cliente);
         ordem.setEndereco(endereco);
         ordemRepository.save(ordem);
@@ -140,10 +135,7 @@ public class OrdemService {
                     .map(Categorias::getNome)
                     .distinct()
                     .collect(Collectors.toList());
-
-            LocalDate dataConvertida = ordem.getData() != null
-                    ? ((java.sql.Date) ordem.getData()).toLocalDate()
-                    : null;
+            LocalDate dataConvertida = ordem.getData();
 
             return new OrdemResumoDTO(
                     ordem.getId(),
@@ -188,9 +180,9 @@ public class OrdemService {
         novaOrdem.setCliente(ordemOriginal.getCliente());
         novaOrdem.setEndereco(ordemOriginal.getEndereco());
         LocalDate localDate = LocalDate.now();
-        Date date = (Date) Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        novaOrdem.setData(localDate);
 
-        novaOrdem.setData(date);
+        novaOrdem.setData(localDate);
         novaOrdem.setStatus("TROCA SOLICITADA");
         novaOrdem.setPrecoTotal(BigDecimal.ZERO);
         novaOrdem = ordemRepository.save(novaOrdem);  // Salve a nova ordem primeiro
