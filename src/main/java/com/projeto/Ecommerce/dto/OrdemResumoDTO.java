@@ -12,7 +12,6 @@ public class OrdemResumoDTO {
     private Long numeroPedido;
     private String nomeCliente;
     private List<String> livros;
-    private List<String> categorias;
     private BigDecimal valorTotal;
     private String status;
     private LocalDate data;

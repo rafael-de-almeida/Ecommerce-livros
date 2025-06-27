@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,12 +53,15 @@ public class OrdemService {
     }
 
     public void criarOrdem(OrdemRequestDTO dto) {
+        // Buscar cliente
         Clientes cliente = clienteRepository.findById(dto.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
+        // Buscar endereço
         Enderecos endereco = enderecoRepository.findById(dto.getEnderecoId())
                 .orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
 
+        // Criar a ordem
         Ordem ordem = new Ordem();
         ordem.setPrecoTotal(dto.getPrecoTotal());
         ordem.setStatus(dto.getStatus());
@@ -64,17 +70,21 @@ public class OrdemService {
         ordem.setEndereco(endereco);
         ordemRepository.save(ordem);
 
+        // Adicionar livros
         for (OrdemLivroDTO livroDTO : dto.getLivros()) {
             Livros livro = livroRepository.findById(livroDTO.getLivroId())
                     .orElseThrow(() -> new RuntimeException("Livro não encontrado"));
 
+            // Verificar se há estoque suficiente
             int totalEstoque = estoqueRepository.totalEstoquePorLivro(livro.getLivId());
             if (totalEstoque < livroDTO.getQuantidade()) {
                 throw new RuntimeException("Estoque insuficiente para o livro: " + livro.getLivTitulo());
             }
 
+            // Dar baixa no estoque
             estoqueService.saidaEstoque(livro.getLivId(), livroDTO.getQuantidade());
 
+            // Criar o item na ordem
             OrdemLivro ordemLivro = new OrdemLivro();
             ordemLivro.setOrdem(ordem);
             ordemLivro.setLivro(livro);
@@ -83,6 +93,7 @@ public class OrdemService {
             ordemLivroRepository.save(ordemLivro);
         }
 
+        // Adicionar pagamentos
         if (dto.getPagamentos() != null) {
             for (PagamentoDTO pagDTO : dto.getPagamentos()) {
                 Cartoes cartao = cartaoRepository.findById(pagDTO.getCartaoId())
@@ -101,11 +112,11 @@ public class OrdemService {
         return ordemLivroRepository.findPedidosByClienteId(ordemId);
     }
 
-    public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String tituloLivro, String categoria, String status,
+    public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String tituloLivro, String status,
                                              LocalDate dataInicio, LocalDate dataFim,
                                              BigDecimal valorTotal, Long numeroPedido) {
         List<Ordem> ordens = ordemRepository.buscarOrdensComFiltros(
-                nomeCliente, tituloLivro, categoria, status, dataInicio, dataFim, valorTotal, numeroPedido
+                nomeCliente, tituloLivro, status, dataInicio, dataFim, valorTotal, numeroPedido
         );
 
         return ordens.stream().map(ordem -> {
@@ -119,24 +130,14 @@ public class OrdemService {
             List<String> titulos = ordem.getLivros().stream()
                     .map(ol -> ol.getLivro().getLivTitulo())
                     .toList();
+
             dto.setLivros(titulos);
-
-            List<String> categorias = ordem.getLivros().stream()
-                    .flatMap(ol -> ol.getLivro().getCategorias().stream())
-                    .map(Categorias::getNome)
-                    .distinct()
-                    .toList();
-
-            dto.setCategorias(categorias);
-
             return dto;
         }).toList();
     }
-
     public Optional<Ordem> buscarOrdemPorId(Long idOrdem) {
-        return ordemRepository.findById(idOrdem);
+        return ordemRepository.findById(idOrdem); // Busca a ordem pelo ID
     }
-
     @Transactional
     public void solicitarTroca(TrocaRequestDTO dto) {
         if (dto.getLivrosParaTroca() == null || dto.getLivrosParaTroca().isEmpty()) {
@@ -144,6 +145,7 @@ public class OrdemService {
         }
 
         Ordem ordemOriginal = ordemRepository.buscarOrdemComLivrosPorId(dto.getOrdemOriginalId());
+
         if (ordemOriginal == null) {
             throw new RuntimeException("Ordem original não encontrada");
         }
@@ -166,7 +168,7 @@ public class OrdemService {
         novaOrdem.setData(LocalDate.now());
         novaOrdem.setStatus("TROCA SOLICITADA");
         novaOrdem.setPrecoTotal(BigDecimal.ZERO);
-        novaOrdem = ordemRepository.save(novaOrdem);
+        novaOrdem = ordemRepository.save(novaOrdem);  // Salve a nova ordem primeiro
 
         BigDecimal total = BigDecimal.ZERO;
 
@@ -192,7 +194,7 @@ public class OrdemService {
 
             if (quantidadeTroca == olOriginal.getQuantidade()) {
                 ordemLivroRepository.delete(olOriginal);
-                ordemOriginal.getLivros().remove(olOriginal);
+                ordemOriginal.getLivros().remove(olOriginal);  // EVITA ObjectDeletedException
             } else {
                 olOriginal.setQuantidade(olOriginal.getQuantidade() - quantidadeTroca);
                 ordemLivroRepository.save(olOriginal);
@@ -200,22 +202,31 @@ public class OrdemService {
         }
 
         novaOrdem.setPrecoTotal(total);
-        novaOrdem = ordemRepository.save(novaOrdem);
+        novaOrdem = ordemRepository.save(novaOrdem); // Re-salvando a nova ordem para garantir a atualização do preço total
 
+        // Atualizar a ordem original após possíveis deleções
         ordemOriginal.getLivros().removeIf(ol -> ol.getQuantidade() == 0);
 
+        // Apagar pagamentos associados à ordem original
         List<Pagamento> pagamentos = pagamentoRepository.findByOrdem_Id(ordemOriginal.getId());
         if (pagamentos != null && !pagamentos.isEmpty()) {
-            pagamentoRepository.deleteAll(pagamentos);
+            pagamentoRepository.deleteAll(pagamentos);  // Apaga os pagamentos relacionados à ordem
         }
 
         if (ordemOriginal.getLivros().isEmpty()) {
-            ordemRepository.delete(ordemOriginal);
+            ordemRepository.delete(ordemOriginal);  // Todos os livros foram trocados, então apaga a ordem
         } else {
-            ordemRepository.save(ordemOriginal);
+            ordemRepository.save(ordemOriginal);  // Ainda há livros na ordem original
         }
+
+        // Não criamos mais o cupom aqui - só quando a troca for autorizada
     }
 
+    /*
+     * Método para atualizar o status de uma ordem de troca
+     * @param ordemId ID da ordem de troca
+     * @param novoStatus novo status a ser aplicado
+     */
     @Transactional
     public void atualizarStatusTroca(Long ordemId, String novoStatus) {
         Ordem ordem = ordemRepository.findById(ordemId)
@@ -225,19 +236,29 @@ public class OrdemService {
         ordem.setStatus(novoStatus);
         ordemRepository.save(ordem);
 
+        // Se o status foi alterado para "TROCA AUTORIZADA", criamos o cupom
         if ("TROCA AUTORIZADA".equals(novoStatus) && !"TROCA AUTORIZADA".equals(statusAnterior)) {
             criarCupomParaTroca(ordem);
         }
     }
 
+    /**
+     * Método privado que cria um cupom para uma ordem de troca autorizada
+     * @param ordemTroca a ordem de troca que foi autorizada
+     */
     private void criarCupomParaTroca(Ordem ordemTroca) {
+        // Verificamos se é realmente uma ordem de troca
         if (ordemTroca == null || !ordemTroca.getStatus().equals("TROCA AUTORIZADA")) {
-            return;
+            return; // Não é uma troca autorizada
         }
 
+        // Verifica se já existe cupom para esta troca
         boolean cupomExiste = cupomRepository.existsByOrigemTroca_Id(ordemTroca.getId());
-        if (cupomExiste) return;
+        if (cupomExiste) {
+            return; // Evita duplicação de cupons
+        }
 
+        // Criação do cupom de troca
         Cupom cupom = new Cupom();
         cupom.setCodigo("TROCA-" + ordemTroca.getId() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
         cupom.setValor(ordemTroca.getPrecoTotal());
@@ -249,4 +270,4 @@ public class OrdemService {
 
         cupomRepository.save(cupom);
     }
-}
+    }
