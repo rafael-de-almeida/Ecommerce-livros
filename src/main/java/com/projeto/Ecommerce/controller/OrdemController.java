@@ -56,7 +56,7 @@ public class OrdemController {
     public List<OrdemResumoDTO> buscarOrdens(
             @RequestParam(required = false) String nomeCliente,
             @RequestParam(required = false) String tituloLivro,
-            @RequestParam(required = false) String categoria,    
+            @RequestParam(required = false) String categoria,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
