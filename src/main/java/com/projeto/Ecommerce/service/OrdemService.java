@@ -5,9 +5,10 @@ import com.projeto.Ecommerce.model.*;
 import com.projeto.Ecommerce.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-
+import java.sql.Date;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ public class OrdemService {
     private final CupomRepository cupomRepository;
     private final EstoqueRepository estoqueRepository;
     private final EstoqueService estoqueService;
-
+    private final CategoriaRepository categoriaRepository;
     public OrdemService(
             OrdemRepository ordemRepository,
             ClienteRepository clienteRepository,
@@ -35,7 +36,8 @@ public class OrdemService {
             CartaoRepository cartaoRepository,
             CupomRepository cupomRepository,
             EstoqueRepository estoqueRepository,
-            EstoqueService estoqueService
+            EstoqueService estoqueService,
+            CategoriaRepository categoriaRepository
     ) {
         this.ordemRepository = ordemRepository;
         this.clienteRepository = clienteRepository;
@@ -47,6 +49,7 @@ public class OrdemService {
         this.cupomRepository = cupomRepository;
         this.estoqueRepository = estoqueRepository;
         this.estoqueService = estoqueService;
+        this.categoriaRepository = categoriaRepository;
     }
 
     public void criarOrdem(OrdemRequestDTO dto) {
@@ -59,7 +62,13 @@ public class OrdemService {
         Ordem ordem = new Ordem();
         ordem.setPrecoTotal(dto.getPrecoTotal());
         ordem.setStatus(dto.getStatus());
-        ordem.setData(dto.getData());
+        LocalDate localDate = dto.getData();
+        if (localDate != null) {
+            Date date = (Date) Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            ordem.setData(date);
+        } else {
+            ordem.setData(null);
+        }
         ordem.setCliente(cliente);
         ordem.setEndereco(endereco);
         ordemRepository.save(ordem);
@@ -97,40 +106,45 @@ public class OrdemService {
         }
     }
 
-    public List<LivroResumoDTO> listarLivrosDaOrdem(Long ordemId) {
-        return ordemLivroRepository.findPedidosByClienteId(ordemId);
-    }
-
     public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String tituloLivro, String categoria, String status,
                                              LocalDate dataInicio, LocalDate dataFim,
                                              BigDecimal valorTotal, Long numeroPedido) {
+
         List<Ordem> ordens = ordemRepository.buscarOrdensComFiltros(
                 nomeCliente, tituloLivro, categoria, status, dataInicio, dataFim, valorTotal, numeroPedido
         );
 
         return ordens.stream().map(ordem -> {
-            OrdemResumoDTO dto = new OrdemResumoDTO();
-            dto.setNumeroPedido(ordem.getId());
-            dto.setNomeCliente(ordem.getCliente().getCliNome());
-            dto.setValorTotal(ordem.getPrecoTotal());
-            dto.setStatus(ordem.getStatus());
-            dto.setData(ordem.getData());
-
-            List<String> titulos = ordem.getLivros().stream()
-                    .map(ol -> ol.getLivro().getLivTitulo())
-                    .toList();
-            dto.setLivros(titulos);
+            List<LivroQuantidadeDTO> livros = ordem.getLivros().stream()
+                    .map(ol -> new LivroQuantidadeDTO(
+                            ol.getLivro().getLivTitulo(),
+                            ol.getQuantidade(),
+                            ol.getLivro().getCategorias().stream()
+                                    .map(Categorias::getNome)
+                                    .collect(Collectors.toList())
+                    ))
+                    .collect(Collectors.toList());
 
             List<String> categorias = ordem.getLivros().stream()
                     .flatMap(ol -> ol.getLivro().getCategorias().stream())
                     .map(Categorias::getNome)
                     .distinct()
-                    .toList();
+                    .collect(Collectors.toList());
 
-            dto.setCategorias(categorias);
+            LocalDate dataConvertida = ordem.getData() != null
+                    ? ((java.sql.Date) ordem.getData()).toLocalDate()
+                    : null;
 
-            return dto;
-        }).toList();
+            return new OrdemResumoDTO(
+                    ordem.getId(),
+                    ordem.getCliente().getCliNome(),
+                    livros,
+                    categorias,
+                    ordem.getPrecoTotal(),
+                    ordem.getStatus(),
+                    dataConvertida
+            );
+        }).collect(Collectors.toList());
     }
 
     public Optional<Ordem> buscarOrdemPorId(Long idOrdem) {
@@ -163,7 +177,10 @@ public class OrdemService {
         Ordem novaOrdem = new Ordem();
         novaOrdem.setCliente(ordemOriginal.getCliente());
         novaOrdem.setEndereco(ordemOriginal.getEndereco());
-        novaOrdem.setData(LocalDate.now());
+        LocalDate localDate = LocalDate.now();
+        Date date = (Date) Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        novaOrdem.setData(date);
         novaOrdem.setStatus("TROCA SOLICITADA");
         novaOrdem.setPrecoTotal(BigDecimal.ZERO);
         novaOrdem = ordemRepository.save(novaOrdem);
@@ -215,6 +232,9 @@ public class OrdemService {
             ordemRepository.save(ordemOriginal);
         }
     }
+    public List<LivroResumoDTO> listarLivrosDaOrdem(Long ordemId) {
+        return ordemLivroRepository.findPedidosByClienteId(ordemId);
+    }
 
     @Transactional
     public void atualizarStatusTroca(Long ordemId, String novoStatus) {
@@ -248,5 +268,15 @@ public class OrdemService {
         cupom.setOrigemTroca(ordemTroca);
 
         cupomRepository.save(cupom);
+    }
+    public List<LivroResumoDTO> listarLivrosDaOrdemComCategorias(Long clienteId) {
+        List<LivroResumoDTO> livros = ordemLivroRepository.findPedidosByClienteId(clienteId);
+
+        for (LivroResumoDTO livro : livros) {
+            List<String> categorias = categoriaRepository.findNomesByLivroId(livro.getLivroId());
+            livro.setCategorias(categorias);
+        }
+
+        return livros;
     }
 }
