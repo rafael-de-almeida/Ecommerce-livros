@@ -1,4 +1,5 @@
 package com.projeto.Ecommerce.dto;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,5 +18,5 @@ public class OrdemResumoDTO {
     private List<String> categorias;
     private BigDecimal valorTotal;
     private String status;
-    private LocalDate data; // Adicione isso
+    private LocalDate data;
 }
