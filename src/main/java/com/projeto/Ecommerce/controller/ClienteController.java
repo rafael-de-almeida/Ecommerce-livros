@@ -9,6 +9,7 @@ import com.projeto.Ecommerce.repository.CartaoRepository;
 import com.projeto.Ecommerce.repository.ClienteRepository;
 import com.projeto.Ecommerce.repository.EnderecoRepository;
 import com.projeto.Ecommerce.service.ClientesService;
+import com.projeto.Ecommerce.service.CriptografiaService;
 import com.projeto.Ecommerce.service.OrdemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,8 @@ public class ClienteController {
     private ClientesService clienteService;
     @Autowired
     private OrdemService ordemService;
+    @Autowired
+    private CriptografiaService criptografiaService;
 
     @PostMapping("/clientes/post/cliente")
     public ResponseEntity<Clientes> createCliente(@RequestBody Clientes clientes) {
@@ -46,6 +49,12 @@ public class ClienteController {
             return ResponseEntity.badRequest().body(null);
         }
         try {
+            // Criptografa a senha antes de salvar
+            if (clientes.getCliSenha() != null && !clientes.getCliSenha().isBlank()) {
+                String senhaCriptografada = criptografiaService.criptografar(clientes.getCliSenha());
+                clientes.setCliSenha(senhaCriptografada);
+            }
+
             Clientes savedClientes = clienterepository.save(clientes);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedClientes);
         } catch (Exception e) {
