@@ -62,11 +62,42 @@ public class OrdemService {
         Enderecos endereco = enderecoRepository.findById(dto.getEnderecoId())
                 .orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
 
+        // Verificar cupom
+        BigDecimal descontoCupom = BigDecimal.ZERO;
+        Cupom.TipoDesconto tipoDoCupomUsado = null;
+
+        if (dto.getCodigosCupons() != null && !dto.getCodigosCupons().isEmpty()) {
+            int cuponsPromocionais = 0;
+
+            for (String codigo : dto.getCodigosCupons()) {
+                Cupom cupom = cupomRepository.findCupomValidoParaCliente(codigo, dto.getClienteId())
+                        .orElseThrow(() -> new RuntimeException("Cupom inválido ou não pertence ao cliente: " + codigo));
+
+                if (!cupom.isValido()) {
+                    throw new RuntimeException("Cupom expirado ou já utilizado: " + codigo);
+                }
+
+                if (cupom.getTipo() == Cupom.TipoDesconto.PROMOCIONAL) {
+                    cuponsPromocionais++;
+                    if (cuponsPromocionais > 1) {
+                        throw new RuntimeException("Não é permitido usar mais de um cupom promocional por compra");
+                    }
+                }
+
+                // Aplicar desconto acumulado (depende da regra de negócio)
+                descontoCupom = descontoCupom.add(cupom.getValor());
+
+                // Marca o cupom como usado
+                cupom.setUsado(cupom.getUsado() + 1);
+                cupomRepository.save(cupom);
+            }
+        }
+
+
         // Criar a ordem
         Ordem ordem = new Ordem();
-        ordem.setPrecoTotal(dto.getPrecoTotal());
+        ordem.setPrecoTotal(dto.getPrecoTotal().subtract(descontoCupom));
         ordem.setStatus(dto.getStatus());
-        LocalDate localDate = dto.getData();
         ordem.setData(dto.getData());
         ordem.setCliente(cliente);
         ordem.setEndereco(endereco);
@@ -77,16 +108,13 @@ public class OrdemService {
             Livros livro = livroRepository.findById(livroDTO.getLivroId())
                     .orElseThrow(() -> new RuntimeException("Livro não encontrado"));
 
-            // Verificar se há estoque suficiente
             int totalEstoque = estoqueRepository.totalEstoquePorLivro(livro.getLivId());
             if (totalEstoque < livroDTO.getQuantidade()) {
                 throw new RuntimeException("Estoque insuficiente para o livro: " + livro.getLivTitulo());
             }
 
-            // Dar baixa no estoque
             estoqueService.saidaEstoque(livro.getLivId(), livroDTO.getQuantidade());
 
-            // Criar o item na ordem
             OrdemLivro ordemLivro = new OrdemLivro();
             ordemLivro.setOrdem(ordem);
             ordemLivro.setLivro(livro);
@@ -101,14 +129,21 @@ public class OrdemService {
                 Cartoes cartao = cartaoRepository.findById(pagDTO.getCartaoId())
                         .orElseThrow(() -> new RuntimeException("Cartão não encontrado"));
 
+                if (pagDTO.getValor() == null || pagDTO.getValor().compareTo(new BigDecimal("10.00")) < 0) {
+                    throw new RuntimeException("Pagamento com cartão deve ser de no mínimo R$10,00");
+                }
+
                 Pagamento pagamento = new Pagamento();
                 pagamento.setOrdem(ordem);
                 pagamento.setCartao(cartao);
+                pagamento.setValor(pagDTO.getValor());
                 pagamento.setStatus(pagDTO.getStatus());
                 pagamentoRepository.save(pagamento);
             }
         }
     }
+
+
 
     public List<OrdemResumoDTO> buscarOrdens(String nomeCliente, String tituloLivro, String categoria, String status,
 

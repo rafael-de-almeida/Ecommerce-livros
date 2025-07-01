@@ -888,7 +888,7 @@ public class vendaTrocaTest {
         WebElement inputValor = grupoMaisRecente.findElement(By.cssSelector("input[type='number']"));
 
 
-        inputValor.sendKeys("100.00");
+        inputValor.sendKeys("171.80");
         System.out.println("[INFO] Valor preenchido no cartão.");
 
 

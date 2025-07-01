@@ -46,5 +46,10 @@ public class Cupom {
         TROCA,
         PROMOCIONAL,
     }
+
+    public boolean isValido() {
+        return (this.usado < this.usoMaximo) && (this.validade == null || !this.validade.isBefore(LocalDate.now()));
+    }
+
 }
 

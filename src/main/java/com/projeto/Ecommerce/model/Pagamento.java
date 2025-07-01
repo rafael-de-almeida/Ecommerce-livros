@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "pagamento")
 @Getter
@@ -21,6 +23,9 @@ public class Pagamento {
 
     @Column(name = "pag_status", nullable = false)
     private String status;
+
+    @Column(name = "pag_valor") // ou só "valor", depende do seu banco
+    private BigDecimal valor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ord_id", nullable = false)

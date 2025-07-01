@@ -74,7 +74,7 @@ public class TesteAutomatizadoCRUD {
             preencherInput(entry.getKey(), entry.getValue());
         }
 
-        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.className("formbold-btn")));
+        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']")));
 
 
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", submitButton);
@@ -408,9 +408,18 @@ public class TesteAutomatizadoCRUD {
 
     private void preencherInput(String name, String value) {
         WebElement inputField = driver.findElement(By.name(name));
-        inputField.sendKeys(value);
-        System.out.println("[INFO] Filled input '" + name + "' with '" + value + "'.");
+        String type = inputField.getAttribute("type");
+
+        if ("date".equalsIgnoreCase(type)) {
+            // Força o valor correto no input[type=date] via JavaScript
+            ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", inputField, value);
+            System.out.println("[INFO] Campo de data '" + name + "' preenchido com JavaScript: " + value);
+        } else {
+            inputField.sendKeys(value);
+            System.out.println("[INFO] Filled input '" + name + "' with '" + value + "'.");
+        }
     }
+
 
     private void limparInput(String name) {
         WebElement inputField = driver.findElement(By.name(name));

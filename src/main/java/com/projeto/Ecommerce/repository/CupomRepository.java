@@ -20,4 +20,6 @@ public interface CupomRepository extends JpaRepository<Cupom, Long> {
     @Query("SELECT c FROM Cupom c WHERE c.codigo = :codigo AND (c.cliente IS NULL OR c.cliente.cliId = :clienteId)")
     Optional<Cupom> findCupomValidoParaCliente(String codigo, Integer clienteId);
 
+
+
 }
