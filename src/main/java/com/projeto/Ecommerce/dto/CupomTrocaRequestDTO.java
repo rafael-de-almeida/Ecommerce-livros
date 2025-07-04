@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Setter
 public class CupomTrocaRequestDTO {
     private Integer clienteId;
-    private BigDecimal valorEmCentavos; // Armazene o valor em centavos para evitar problemas de arredondamento
+    private BigDecimal valorEmCentavos;
     private Long idOrdemOrigem;
 }
 

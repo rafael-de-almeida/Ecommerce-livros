@@ -20,7 +20,7 @@ public class GeminiService {
 
     private final Map<String, List<String>> historicoPorUsuario = new HashMap<>();
 
-    // Novo mapa para armazenar o último livro mencionado por usuário
+
     private final Map<String, String> ultimoLivroPorUsuario = new HashMap<>();
 
     @Autowired

@@ -33,13 +33,13 @@ public class LivroController {
         LocalDate anoConvertido = null;
         if (ano != null && !ano.trim().isEmpty()) {
             try {
-                anoConvertido = LocalDate.parse(ano); // formato ISO: yyyy-MM-dd
+                anoConvertido = LocalDate.parse(ano);
             } catch (DateTimeParseException e) {
                 System.out.println("Formato de data inválido para ano: " + ano);
             }
         }
 
-        // Verifica se todos os campos estão vazios e retorna todos os livros
+
         if (autor == null && categoria == null && ano == null && titulo == null &&
                 editora == null && isbn == null && qtdpaginas == null && codbarras == null) {
             return livroRepository.findAll();

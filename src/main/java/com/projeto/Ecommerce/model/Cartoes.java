@@ -45,6 +45,6 @@ public class Cartoes {
 
     @ManyToOne
     @JoinColumn(name = "CLI_ID")
-    @JsonBackReference  // Não serializa a referência de volta para o cliente
+    @JsonBackReference
     private Clientes cliente;
 }

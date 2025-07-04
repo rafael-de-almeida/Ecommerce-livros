@@ -58,10 +58,10 @@ public class Clientes {
     private String cliStatus;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
-    @JsonManagedReference  // Controla a serialização da lista de endereços
+    @JsonManagedReference
     private List<Enderecos> enderecos;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
-    @JsonManagedReference  // Controla a serialização da lista de cartões
+    @JsonManagedReference
     private List<Cartoes> cartoes;
 }

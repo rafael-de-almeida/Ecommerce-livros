@@ -18,7 +18,7 @@ public class GeminiController {
     @PostMapping("/perguntar")
     public ResponseEntity<Map<String, String>> perguntar(@RequestBody Map<String, String> payload) {
         String pergunta = payload.get("pergunta");
-        String usuarioId = payload.get("usuarioId"); // pode ser um UUID, login, ou mesmo IP
+        String usuarioId = payload.get("usuarioId");
 
         String resposta = geminiService.gerarResposta(pergunta, usuarioId);
         Map<String, String> respostaJson = new HashMap<>();

@@ -119,12 +119,12 @@ public class EstoqueService {
         List<EstoqueDTO> estoqueDTOList = new ArrayList<>();
 
         for (Object[] resultado : resultados) {
-            Long livroId = (Long) resultado[0];  // ID do livro
-            Integer quantidadeTotal = (Integer) resultado[1];  // Quantidade total, agora já retornada como Integer
+            Long livroId = (Long) resultado[0];
+            Integer quantidadeTotal = (Integer) resultado[1];
 
             EstoqueDTO dto = new EstoqueDTO();
             dto.setIdLivro(livroId);
-            dto.setQuantidade(quantidadeTotal);  // Usando Integer diretamente
+            dto.setQuantidade(quantidadeTotal);
 
             estoqueDTOList.add(dto);
         }

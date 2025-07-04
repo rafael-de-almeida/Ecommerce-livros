@@ -24,9 +24,9 @@ public class Cupom {
     private BigDecimal valor;
 
     @Enumerated(EnumType.STRING)
-    private TipoDesconto tipo; // FIXO ou PORCENTAGEM
+    private TipoDesconto tipo;
 
-    private boolean troca; // true = cupom de troca, false = promocional
+    private boolean troca;
 
     private LocalDate validade;
 
@@ -36,11 +36,11 @@ public class Cupom {
 
     @ManyToOne
     @JoinColumn(name = "cliente_id")
-    private Clientes cliente; // só preenchido se for um cupom de troca
+    private Clientes cliente;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "origem_troca_ord_id")
-    private Ordem origemTroca; // opcional, usado apenas em cupom de troca
+    private Ordem origemTroca;
 
     public enum TipoDesconto {
         TROCA,

@@ -24,7 +24,7 @@ public class Pagamento {
     @Column(name = "pag_status", nullable = false)
     private String status;
 
-    @Column(name = "pag_valor") // ou só "valor", depende do seu banco
+    @Column(name = "pag_valor")
     private BigDecimal valor;
 
     @ManyToOne(fetch = FetchType.LAZY)

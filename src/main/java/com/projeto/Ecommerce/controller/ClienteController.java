@@ -49,7 +49,7 @@ public class ClienteController {
             return ResponseEntity.badRequest().body(null);
         }
         try {
-            // Criptografa a senha antes de salvar
+
             if (clientes.getCliSenha() != null && !clientes.getCliSenha().isBlank()) {
                 String senhaCriptografada = criptografiaService.criptografar(clientes.getCliSenha());
                 clientes.setCliSenha(senhaCriptografada);

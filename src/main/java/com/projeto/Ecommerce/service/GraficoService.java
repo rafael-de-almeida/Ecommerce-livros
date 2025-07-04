@@ -27,7 +27,7 @@ public class GraficoService {
                         .collect(Collectors.toList());
 
                 return new LivroQuantidadeDTO(
-                        ol.getLivro().getLivTitulo(),  // Use getLivTitulo() conforme sua entidade
+                        ol.getLivro().getLivTitulo(),
                         ol.getQuantidade(),
                         categorias
                 );

@@ -1,9 +1,6 @@
 package com.projeto.Ecommerce.controller;
 
-import com.projeto.Ecommerce.dto.CupomAplicadoDTO;
-import com.projeto.Ecommerce.dto.CupomRequestDTO;
-import com.projeto.Ecommerce.dto.CupomTrocaRequestDTO;
-import com.projeto.Ecommerce.dto.FinalizarCompraRequest;
+import com.projeto.Ecommerce.dto.*;
 import com.projeto.Ecommerce.model.Cupom;
 import com.projeto.Ecommerce.model.Ordem;
 import com.projeto.Ecommerce.service.CupomService;
@@ -33,7 +30,7 @@ public class CupomController {
         String codigoCupom = cupomRequest.getCodigo();
         Integer clienteId = cupomRequest.getClienteId();
 
-        // Validação do código do cupom
+        
         if (codigoCupom == null || codigoCupom.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                     "valido", false,
@@ -42,13 +39,13 @@ public class CupomController {
         }
 
         try {
-            // Chama o serviço para validar o cupom
+
             Map<String, Object> resultado = cupomService.validarCupom(codigoCupom, clienteId);
 
-            // Retorna o resultado da validação
+
             return ResponseEntity.ok(resultado);
         } catch (Exception e) {
-            // Em caso de erro, retorna uma resposta com o erro
+
             return ResponseEntity.badRequest().body(Map.of(
                     "valido", false,
                     "mensagem", "Erro ao validar cupom: " + e.getMessage()
@@ -64,7 +61,7 @@ public class CupomController {
             Integer clienteId = Integer.parseInt(body.get("clienteId").toString());
             Double valorCompra = Double.parseDouble(body.get("valorCompra").toString());
 
-            // Chama o serviço para aplicar o cupom e retorna o DTO
+
             CupomAplicadoDTO resposta = cupomService.aplicarCupom(codigoCupom, clienteId, valorCompra);
             return ResponseEntity.ok(resposta);
         } catch (Exception e) {
@@ -78,10 +75,29 @@ public class CupomController {
             ));
         }
     }
+    @PostMapping("/gerar-troco")
+    public ResponseEntity<?> gerarTroco(@RequestBody CupomTrocoDTO request) {
+        try {
+
+            Cupom cupomGerado = cupomService.gerarCupomDeTroco(
+                    request.getClienteId(),
+                    request.getValor()
+            );
+
+            return ResponseEntity.ok(cupomGerado);
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest().body(Map.of("sucesso", false, "mensagem", e.getMessage()));
+        } catch (RuntimeException e) {
+
+            return ResponseEntity.badRequest().body(Map.of("sucesso", false, "mensagem", e.getMessage()));
+        }
+    }
+
     @PostMapping("/finalizar-compra")
     public ResponseEntity<?> finalizarCompra(@RequestBody FinalizarCompraRequest request) {
         try {
-            // Verifica se há cupons a serem utilizados
+
             List<Long> cuponsIds = request.getCuponsIds();
             if (cuponsIds != null && !cuponsIds.isEmpty()) {
                 for (Long cupomId : cuponsIds) {
@@ -90,7 +106,6 @@ public class CupomController {
                 }
             }
 
-            // Outras lógicas de finalização de compra (ex: atualizar ordem, pagamento, etc.)
 
             return ResponseEntity.ok(Map.of("sucesso", true, "mensagem", "Compra finalizada com sucesso"));
         } catch (Exception e) {
@@ -116,7 +131,7 @@ public class CupomController {
     @PostMapping("/criar-troca")
     public ResponseEntity<?> criarCupomTroca(@RequestBody CupomTrocaRequestDTO requestDTO) {
         try {
-            // Cria o cupom de troca no service
+
             Cupom cupomCriado = cupomService.criarCupomTroca(
                     requestDTO.getClienteId(),
                     requestDTO.getValorEmCentavos(),
@@ -135,5 +150,18 @@ public class CupomController {
             ));
         }
     }
+
+    @GetMapping("/cliente/{clienteId}/troca")
+    public ResponseEntity<?> listarCuponsDeTrocaDoCliente(@PathVariable Integer clienteId) {
+        try {
+            List<CupomListagemDTO> cuponsDTO = cupomService.listarCuponsDeTrocaPorCliente(clienteId);
+            return ResponseEntity.ok(cuponsDTO);
+        } catch (RuntimeException e) {
+            System.err.println("Erro ao Buscar Cupons: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Erro interno ao buscar cupons de troca.");
+        }
+    }
+
 
 }

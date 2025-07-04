@@ -30,11 +30,7 @@ public class OrdemController {
     @Autowired
     private OrdemRepository ordemRepository;
 
-//    @GetMapping("/clientes/pedido/get/{id}")
-//    public ResponseEntity<List<LivroResumoDTO>> getAllOrdem(@PathVariable Long id) {
-//        List<LivroResumoDTO> livros = ordemService.listarLivrosDaOrdem(id);
-//        return ResponseEntity.ok(livros);
-//    }
+
     @GetMapping("/clientes/pedido/get/{id}")
     public ResponseEntity<List<LivroResumoDTO>> getLivrosDaOrdem(@PathVariable Long id) {
         List<LivroResumoDTO> livros = ordemService.listarLivrosDaOrdem(id);
@@ -77,16 +73,16 @@ public List<OrdemResumoDTO> buscarOrdens(
         }
 
         try {
-            // Verificamos se a ordem existe antes de prosseguir
+
             Ordem ordem = ordemRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem não encontrada"));
 
-            // Utilizamos o serviço existente para atualizar o status
+
             ordemService.atualizarStatusTroca(id, novoStatus);
 
             return ResponseEntity.ok("Status atualizado com sucesso");
         } catch (ResponseStatusException e) {
-            // Repassamos exceções de status HTTP (como NOT_FOUND)
+
             throw e;
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erro ao atualizar status: " + e.getMessage());

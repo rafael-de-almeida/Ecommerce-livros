@@ -17,5 +17,5 @@ public class EstoqueCreateDTO {
     private Integer quantidade;
     private BigDecimal valorDeCusto;
 
-    // Getters e Setters
+
 }

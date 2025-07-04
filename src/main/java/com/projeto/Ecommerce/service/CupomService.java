@@ -1,6 +1,7 @@
 package com.projeto.Ecommerce.service;
 
 import com.projeto.Ecommerce.dto.CupomAplicadoDTO;
+import com.projeto.Ecommerce.dto.CupomListagemDTO;
 import com.projeto.Ecommerce.model.Clientes;
 import com.projeto.Ecommerce.model.Cupom;
 import com.projeto.Ecommerce.model.Ordem;
@@ -9,13 +10,14 @@ import com.projeto.Ecommerce.repository.CupomRepository;
 import com.projeto.Ecommerce.repository.OrdemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.projeto.Ecommerce.model.Cupom.TipoDesconto.TROCA;
 
@@ -28,9 +30,9 @@ public class CupomService {
     private ClienteRepository clienteRepository;
     @Autowired
     private OrdemRepository ordemRepository;
-    /**
-     * Valida se um cupom existe e pode ser usado pelo cliente
-     */
+
+
+    @Transactional(readOnly = true)
     public Map<String, Object> validarCupom(String codigo, Integer clienteId) {
         Map<String, Object> resultado = new HashMap<>();
 
@@ -44,22 +46,18 @@ public class CupomService {
 
         Cupom cupom = cupomOpt.get();
 
-        // Verifica se o cupom está ativo
         if (Objects.equals(cupom.getUsado(), cupom.getUsoMaximo())) {
             resultado.put("valido", false);
             resultado.put("mensagem", "Este cupom não está mais ativo");
             return resultado;
         }
 
-        // Verifica a data de validade
-        if (cupom.getValidade() != null &&
-                cupom.getValidade().isBefore(LocalDate.now())) {
+        if (cupom.getValidade() != null && cupom.getValidade().isBefore(LocalDate.now())) {
             resultado.put("valido", false);
             resultado.put("mensagem", "Este cupom expirou em " + cupom.getValidade());
             return resultado;
         }
 
-        // Cupom válido
         resultado.put("valido", true);
         resultado.put("mensagem", "Cupom válido!");
         resultado.put("tipo", cupom.getTipo());
@@ -70,13 +68,9 @@ public class CupomService {
     }
 
 
-    /**
-     * Aplica o desconto do cupom a uma compra
-     */
     public CupomAplicadoDTO aplicarCupom(String codigo, Integer clienteId, Double valorCompra) {
         Map<String, Object> resultadoValidacao = validarCupom(codigo, clienteId);
 
-        // Verifica se a validação do cupom falhou
         if (!(Boolean) resultadoValidacao.get("valido")) {
             return new CupomAplicadoDTO(
                     false,
@@ -94,23 +88,18 @@ public class CupomService {
 
         BigDecimal valorDesconto = BigDecimal.ZERO;
 
-        // Calcula o desconto de acordo com o tipo do cupom
         if (tipo == Cupom.TipoDesconto.PROMOCIONAL) {
-            valorDesconto = BigDecimal.valueOf(valorCompra).multiply(valor).divide(BigDecimal.valueOf(100));
+            valorDesconto = BigDecimal.valueOf(valorCompra).multiply(valor).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         } else if (tipo == TROCA) {
             valorDesconto = valor;
         }
 
-        // Garante que o desconto não ultrapasse o valor da compra
         valorDesconto = valorDesconto.min(BigDecimal.valueOf(valorCompra));
-
-        // Arredonda o valor do desconto para 2 casas decimais
         valorDesconto = valorDesconto.setScale(2, RoundingMode.HALF_UP);
 
         Double valorFinal = valorCompra - valorDesconto.doubleValue();
 
-        // Criação do DTO de resposta
-        CupomAplicadoDTO resposta = new CupomAplicadoDTO(
+        return new CupomAplicadoDTO(
                 true,
                 "Cupom aplicado com sucesso!",
                 valorCompra,
@@ -118,38 +107,39 @@ public class CupomService {
                 valorFinal,
                 cupomId
         );
-
-        // Retornar apenas a resposta sem atualizar o cupom ainda
-        return resposta;
     }
 
-    // Método para marcar o cupom como "usado" na finalização da compra
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void finalizarCompra(Long cupomId) {
-        Optional<Cupom> cupomOpt = cupomRepository.findById(cupomId);
-        if (cupomOpt.isPresent()) {
-            Cupom cupom = cupomOpt.get();
-            cupom.setUsado(cupom.getUsado() + 1);
-            cupomRepository.save(cupom);
-        } else {
-            throw new RuntimeException("Cupom não encontrado.");
-        }
+        Cupom cupom = cupomRepository.findById(cupomId)
+                .orElseThrow(() -> new RuntimeException("Cupom não encontrado para finalizar a compra: ID " + cupomId));
+
+        cupom.setUsado(cupom.getUsado() + 1);
+        cupomRepository.save(cupom);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Cupom> buscarCupomPorOrigemTroca(Ordem ordem) {
         return cupomRepository.findByOrigemTroca(ordem);
     }
-    public Cupom criarCupomTroca(Integer clienteId, BigDecimal valorEmCentavos, Long idOrdemOrigem) {
+
+
+    @Transactional
+    public Cupom criarCupomTroca(Integer clienteId, BigDecimal valorCupom, Long idOrdemOrigem) {
         Clientes cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+
         Cupom cupom = new Cupom();
         cupom.setCodigo("TROCA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         cupom.setTipo(TROCA);
-        cupom.setValor(valorEmCentavos); // ou salve em centavos se preferir
+        cupom.setValor(valorCupom);
         cupom.setTroca(true);
         cupom.setCliente(cliente);
+        cupom.setUsado(0);
+        cupom.setUsoMaximo(1);
+        cupom.setValidade(LocalDate.now().plusYears(1)); // Validade de 1 ano
 
-        // Associa à ordem de origem, se necessário
         if (idOrdemOrigem != null) {
             Ordem ordem = ordemRepository.findById(idOrdemOrigem)
                     .orElseThrow(() -> new RuntimeException("Ordem não encontrada"));
@@ -159,5 +149,63 @@ public class CupomService {
         return cupomRepository.save(cupom);
     }
 
-}
 
+    @Transactional
+    public Cupom gerarCupomDeTroco(Integer clienteId, BigDecimal valorTroco) {
+        if (valorTroco == null || valorTroco.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("O valor do troco deve ser positivo.");
+        }
+
+        Clientes cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com ID: " + clienteId));
+
+        Cupom novoCupom = new Cupom();
+        novoCupom.setCodigo("TRC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        novoCupom.setTipo(TROCA);
+        novoCupom.setTroca(true);
+        novoCupom.setValor(valorTroco);
+        novoCupom.setCliente(cliente);
+        novoCupom.setUsado(0);
+        novoCupom.setUsoMaximo(1);
+        novoCupom.setValidade(LocalDate.now().plusYears(1)); // Validade de 1 ano
+
+        return cupomRepository.save(novoCupom);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CupomListagemDTO> listarCuponsDeTrocaPorCliente(Integer clienteId) {
+        if (!clienteRepository.existsById(clienteId)) {
+            throw new RuntimeException("Cliente não encontrado com ID: " + clienteId);
+        }
+
+        List<Cupom> cuponsDeTroca = cupomRepository.findCuponsDeTrocaValidosPorCliente(clienteId);
+
+
+        return cuponsDeTroca.stream()
+                .map(this::converterParaDTO)
+                .collect(Collectors.toList());
+    }
+
+    private CupomListagemDTO converterParaDTO(Cupom cupom) {
+        String descricao = gerarDescricaoDoCupom(cupom);
+        return new CupomListagemDTO(
+                cupom.getCodigo(),
+                cupom.getValor(),
+                cupom.getTipo(),
+                cupom.getValidade(),
+                descricao
+        );
+    }
+
+
+    private String gerarDescricaoDoCupom(Cupom cupom) {
+        if (cupom.getTipo() == Cupom.TipoDesconto.PROMOCIONAL) {
+
+            return cupom.getValor().stripTrailingZeros().toPlainString() + "% de desconto.";
+        } else if (cupom.getTipo() == Cupom.TipoDesconto.TROCA) {
+
+            return "Crédito de R$ " + String.format("%.2f", cupom.getValor().doubleValue()).replace('.', ',') + " para usar em sua compra.";
+        }
+        return "Cupom de desconto.";
+    }
+}

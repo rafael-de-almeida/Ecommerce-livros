@@ -23,8 +23,8 @@ import java.util.List;
         public ResponseEntity<List<OrdemLivroResumoDTO>> getOrdemLivrosByOrdemId(@PathVariable("ordId") Long ordId) {
             List<OrdemLivroResumoDTO> ordemLivros = ordemLivroService.findAllByOrdemId(ordId);
             if (ordemLivros.isEmpty()) {
-                return ResponseEntity.noContent().build(); // Retorna 204 se não houver resultados
+                return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(ordemLivros); // Retorna 200 com os dados
+            return ResponseEntity.ok(ordemLivros);
         }
     }
