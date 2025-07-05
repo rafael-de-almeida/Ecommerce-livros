@@ -1,4 +1,4 @@
-package com.projeto.Ecommerce;
+package com.projeto.Ecommerce.controller.Crud;
 
 import com.projeto.Ecommerce.service.ClientesService;
 import io.restassured.response.Response;
@@ -15,8 +15,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -48,8 +50,98 @@ public class TesteAutomatizadoCRUD {
         System.out.println("[INFO] Opened page: " + url);
     }
 
+    // NOVO TESTE: Validação de senhas que não coincidem
     @Test
     @Order(1)
+    void testRegistrationWithMismatchedPasswords() throws InterruptedException {
+        navigateToPage("http://127.0.0.1:5500/CadastroCliente.html");
+
+        // Captura o ID do último cliente para verificar que nenhum novo será criado
+        Integer initialLastClientId = cliente.getLastClient();
+        System.out.println("[INFO] Initial last client ID: " + initialLastClientId);
+
+        // Preenche o formulário com senhas diferentes
+        Map<String, String> inputData = new HashMap<>();
+        inputData.put("nome", "Teste Senha Diferente");
+        inputData.put("genero", "Outro");
+        inputData.put("data_de_nascimento", "2000-01-01");
+        inputData.put("senha", "SenhaForte123@");
+        inputData.put("confirmar_senha", "SenhaDIFERENTE123@"); // Senha diferente
+        inputData.put("cpf", "99988877766");
+        inputData.put("email", "senha.diferente@teste.com");
+        inputData.put("telefone", "11999998888");
+        inputData.put("idade", "24");
+
+        for (Map.Entry<String, String> entry : inputData.entrySet()) {
+            preencherInput(entry.getKey(), entry.getValue());
+        }
+
+        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", submitButton);
+        System.out.println("[INFO] Clicked submit button with mismatched passwords.");
+
+        // Valida o alerta de erro
+        Alert alert = wait.until(ExpectedConditions.alertIsPresent());
+        String alertText = alert.getText();
+        System.out.println("[INFO] Alert displayed: " + alertText);
+        alert.accept();
+
+        // Verifica se a mensagem de erro esperada foi exibida (ajuste a string se necessário)
+        assertTrue(alertText.toLowerCase().contains("senhas não coincidem"), "A mensagem de erro de senhas divergentes não apareceu. Mensagem exibida: " + alertText);
+
+        // Verifica se nenhum cliente novo foi criado
+        Integer finalLastClientId = cliente.getLastClient();
+        assertEquals(initialLastClientId, finalLastClientId, "[ERROR] Um novo cliente foi criado mesmo com senhas divergentes.");
+        System.out.println("[SUCCESS] Teste de senhas divergentes passou. Nenhum cliente foi criado.");
+    }
+
+    // NOVO TESTE: Validação de senha fraca
+    @Test
+    @Order(2)
+    void testRegistrationWithWeakPassword() throws InterruptedException {
+        navigateToPage("http://127.0.0.1:5500/CadastroCliente.html");
+
+        // Captura o ID do último cliente para verificar que nenhum novo será criado
+        Integer initialLastClientId = cliente.getLastClient();
+        System.out.println("[INFO] Initial last client ID: " + initialLastClientId);
+
+        // Preenche o formulário com uma senha fraca
+        Map<String, String> inputData = new HashMap<>();
+        inputData.put("nome", "Teste Senha Fraca");
+        inputData.put("genero", "Outro");
+        inputData.put("data_de_nascimento", "2000-01-02");
+        inputData.put("senha", "123"); // Senha fraca
+        inputData.put("confirmar_senha", "123"); // Senha fraca
+        inputData.put("cpf", "99988877755");
+        inputData.put("email", "senha.fraca@teste.com");
+        inputData.put("telefone", "11999997777");
+        inputData.put("idade", "24");
+
+        for (Map.Entry<String, String> entry : inputData.entrySet()) {
+            preencherInput(entry.getKey(), entry.getValue());
+        }
+
+        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']")));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", submitButton);
+        System.out.println("[INFO] Clicked submit button with a weak password.");
+
+        // Valida o alerta de erro
+        Alert alert = wait.until(ExpectedConditions.alertIsPresent());
+        String alertText = alert.getText();
+        System.out.println("[INFO] Alert displayed: " + alertText);
+        alert.accept();
+
+        // Verifica se a mensagem de erro esperada foi exibida (ajuste a string se necessário)
+        assertTrue(alertText.toLowerCase().contains("requisitos de segurança"), "A mensagem de erro de senha fraca não apareceu. Mensagem exibida: " + alertText);
+        // Verifica se nenhum cliente novo foi criado
+        Integer finalLastClientId = cliente.getLastClient();
+        assertEquals(initialLastClientId, finalLastClientId, "[ERROR] Um novo cliente foi criado mesmo com senha fraca.");
+        System.out.println("[SUCCESS] Teste de senha fraca passou. Nenhum cliente foi criado.");
+    }
+
+
+    @Test
+    @Order(3) // Antigo Order(1)
     void testFormSubmissionAndApiValidation() throws InterruptedException {
         navigateToPage("http://127.0.0.1:5500/CadastroCliente.html");
 
@@ -62,8 +154,8 @@ public class TesteAutomatizadoCRUD {
         inputData.put("nome", "João Silva");
         inputData.put("genero", "Masculino");
         inputData.put("data_de_nascimento", "2004-07-22");
-        inputData.put("senha", "123");
-        inputData.put("confirmar_senha", "123");
+        inputData.put("senha", "123joao@");
+        inputData.put("confirmar_senha", "123joao@");
         inputData.put("cpf", "123123123");
         inputData.put("email", "rafael@gmail.com");
         inputData.put("telefone", "11987654321");
@@ -89,8 +181,8 @@ public class TesteAutomatizadoCRUD {
         alert.accept();
 
 
-        boolean isSuccess = alertText.contains("success") || alertText.contains("Client successfully posted!");
-        assert isSuccess : "[ERROR] Form submission failed: " + alertText;
+        boolean isSuccess = alertText.contains("success") || alertText.contains("Cliente cadastrado com sucesso!");
+        assertTrue(isSuccess, "[ERROR] Form submission failed: " + alertText);
 
         if (isSuccess) {
             validateClientData(inputData);
@@ -98,7 +190,7 @@ public class TesteAutomatizadoCRUD {
     }
 
     @Test
-    @Order(2)
+    @Order(4) // Antigo Order(2)
     void testClientDataInTable() throws InterruptedException {
         navigateToPage("http://127.0.0.1:5500/pesquisarUsuario.html");
 
@@ -135,20 +227,25 @@ public class TesteAutomatizadoCRUD {
                 Map<String, String> rowData = Map.of("nome", columns.get(0).getText(), "genero", columns.get(1).getText(), "data-nascimento", columns.get(2).getText(), "idade", columns.get(3).getText(), "cpf", columns.get(4).getText(), "email", columns.get(5).getText(), "telefone", columns.get(6).getText());
 
                 System.out.println("[DEBUG] Checking row: " + rowData);
-                if (inputData.equals(rowData)) {
+
+                // Compara se todos os valores da linha correspondem aos dados de entrada
+                boolean allMatch = inputData.entrySet().stream()
+                        .allMatch(entry -> Objects.equals(entry.getValue(), rowData.get(entry.getKey())));
+
+                if (allMatch) {
                     isClientFound = true;
                     break;
                 }
             }
         }
 
-        assert isClientFound : "[ERROR] Client not found in the table!";
+        assertTrue(isClientFound, "[ERROR] Client not found in the table!");
         System.out.println("[INFO] Client found in the table successfully.");
     }
 
     private void validateClientData(Map<String, String> inputData) {
         Integer lastClientId = cliente.getLastClient();
-        assert lastClientId != null : "[ERROR] No client found with the expected ID!";
+        assertNotNull(lastClientId, "[ERROR] No client found with the expected ID!");
         System.out.println("[INFO] Found client with ID: " + lastClientId);
 
         Response response = given().baseUri("http://localhost:8080/site").when().get("/clientes/get").then().statusCode(200).extract().response();
@@ -158,7 +255,7 @@ public class TesteAutomatizadoCRUD {
         String jsonPathQuery = String.format("find { it.cliId == %s }", lastClientId);
         Map<String, Object> clientData = response.jsonPath().getMap(jsonPathQuery);
 
-        assert clientData != null : "[ERROR] No client data found in the API response!";
+        assertNotNull(clientData, "[ERROR] No client data found in the API response!");
 
         Map<String, String> fieldMapping = Map.of("nome", "CLI_NOME", "genero", "CLI_GENERO", "data_de_nascimento", "CLI_NASCIMENTO", "cpf", "CLI_CPF", "email", "CLI_EMAIL", "telefone", "CLI_TELEFONE", "idade", "CLI_IDADE");
 
@@ -172,16 +269,16 @@ public class TesteAutomatizadoCRUD {
 
             String jsonField = fieldMapping.getOrDefault(formField, formField);
             Object actualValueObj = clientData.get(jsonField);
-            assert actualValueObj != null : "[ERROR] Field '" + jsonField + "' is missing in the API response!";
+            assertNotNull(actualValueObj, "[ERROR] Field '" + jsonField + "' is missing in the API response!");
 
             String actualValue = actualValueObj.toString();
-            assert expectedValue.equals(actualValue) : "[ERROR] Mismatch for field '" + formField + "'. Expected: '" + expectedValue + "', Got: '" + actualValue + "'";
+            assertEquals(expectedValue, actualValue, "[ERROR] Mismatch for field '" + formField + "'. Expected: '" + expectedValue + "', Got: '" + actualValue + "'");
         }
 
         System.out.println("[INFO] All client data matches the API response.");
     }
 
-    @Order(3)
+    @Order(5) // Antigo Order(3)
     @Test
     void testFormEditingAndApiValidation() throws InterruptedException {
         navigateToPage("http://127.0.0.1:5500/pesquisarUsuario.html");
@@ -210,7 +307,7 @@ public class TesteAutomatizadoCRUD {
 
 
         Integer lastClientId = cliente.getLastClient();
-        assert lastClientId != null : "[ERROR] No client found with the expected ID!";
+        assertNotNull(lastClientId, "[ERROR] No client found with the expected ID!");
         System.out.println("[INFO] Found client with ID: " + lastClientId);
 
 
@@ -225,7 +322,7 @@ public class TesteAutomatizadoCRUD {
 
 
         System.out.println("[DEBUG] Retrieved client data: " + clientData);
-        assert clientData != null : "[ERROR] No client data found in the API response!";
+        assertNotNull(clientData, "[ERROR] No client data found in the API response!");
 
 
         WebElement formButton = wait.until(ExpectedConditions.elementToBeClickable(By.className("btn-primary")));
@@ -263,7 +360,7 @@ public class TesteAutomatizadoCRUD {
         System.out.println("[INFO] Form found successfully.");
 
         Integer lastClientId = cliente.getLastClient();
-        assert lastClientId != null : "[ERROR] No client found with the expected ID!";
+        assertNotNull(lastClientId, "[ERROR] No client found with the expected ID!");
         System.out.println("[INFO] Found client with ID: " + lastClientId);
 
         Map<String, String> inputData = new HashMap<>();
@@ -306,7 +403,7 @@ public class TesteAutomatizadoCRUD {
 
         String jsonPathQuery = String.format("find { it.cliId == %s }", lastClientId);
         Map<String, Object> clientData = response.jsonPath().getMap(jsonPathQuery);
-        assert clientData != null : "[ERROR] No client data found in the API response!";
+        assertNotNull(clientData, "[ERROR] No client data found in the API response!");
 
 
         for (Map.Entry<String, String> entry : inputData.entrySet()) {
@@ -318,22 +415,18 @@ public class TesteAutomatizadoCRUD {
 
             if ("idade".equals(formField) && apiValue != null) {
                 Integer idadeValue = Integer.parseInt(expectedValue);
-                if (!idadeValue.equals(apiValue)) {
-                    System.out.println("[ERROR] Mismatch in " + formField + ": Form value = " + idadeValue + ", API value = " + apiValue);
-                    assert false : "[ERROR] Mismatch in " + formField;
-                } else {
-                    System.out.println("[INFO] " + formField + " matches: " + idadeValue);
-                }
-            } else if (apiValue == null || !expectedValue.equals(apiValue.toString())) {
-                System.out.println("[ERROR] Mismatch in " + formField + ": Form value = " + expectedValue + ", API value = " + apiValue);
-                assert false : "[ERROR] Mismatch in " + formField;
+                assertEquals(idadeValue, apiValue, "[ERROR] Mismatch in " + formField);
+                System.out.println("[INFO] " + formField + " matches: " + idadeValue);
+
             } else {
+                assertNotNull(apiValue, "[ERROR] Mismatch in " + formField + ": API value is null");
+                assertEquals(expectedValue, apiValue.toString(), "[ERROR] Mismatch in " + formField);
                 System.out.println("[INFO] " + formField + " matches: " + expectedValue);
             }
         }
     }
 
-    @Order(4)
+    @Order(6) // Antigo Order(4)
     @Test
     void testDel() throws InterruptedException {
         navigateToPage("http://127.0.0.1:5500/pesquisarUsuario.html");
@@ -361,7 +454,7 @@ public class TesteAutomatizadoCRUD {
 
 
         Integer lastClientId = cliente.getLastClient();
-        assert lastClientId != null : "[ERROR] No client found with the expected ID!";
+        assertNotNull(lastClientId, "[ERROR] No client found with the expected ID!");
         System.out.println("[INFO] Found client with ID: " + lastClientId);
 
 
@@ -374,7 +467,7 @@ public class TesteAutomatizadoCRUD {
         Map<String, Object> clientData = response.jsonPath().getMap(jsonPathQuery);
 
         System.out.println("[DEBUG] Retrieved client data: " + clientData);
-        assert clientData != null : "[ERROR] No client data found in the API response!";
+        assertNotNull(clientData, "[ERROR] No client data found in the API response!");
 
         WebElement formButton = wait.until(ExpectedConditions.elementToBeClickable(By.className("btn-primary")));
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", formButton);
@@ -401,9 +494,9 @@ public class TesteAutomatizadoCRUD {
         Alert alertDel = wait.until(ExpectedConditions.alertIsPresent());
         alertText = alertDel.getText();
         System.out.println("[INFO] Alert displayed: " + alertText);
-        // Success check
+
         boolean isSuccess = alertText.contains("Cliente excluído com sucesso!");
-        assert isSuccess : "[ERROR] Form submission failed: " + alertText;
+        assertTrue(isSuccess, "[ERROR] Form submission failed: " + alertText);
     }
 
     private void preencherInput(String name, String value) {
@@ -411,7 +504,7 @@ public class TesteAutomatizadoCRUD {
         String type = inputField.getAttribute("type");
 
         if ("date".equalsIgnoreCase(type)) {
-            // Força o valor correto no input[type=date] via JavaScript
+
             ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", inputField, value);
             System.out.println("[INFO] Campo de data '" + name + "' preenchido com JavaScript: " + value);
         } else {
@@ -428,4 +521,3 @@ public class TesteAutomatizadoCRUD {
     }
 
 }
-
